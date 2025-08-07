@@ -1,9 +1,14 @@
 [package]
-name = "rust-app"
+name = "vehicle-net"
 version = "0.1.0"
 edition = "2021"
-authors = ["Your Name"]
-description = "A simple hello world program"
+authors = ["Vehicle Network Team"]
+description = "Decentralized vehicle condition reporting system"
 
 [dependencies]
-# No dependencies needed for hello world
+ethers = { version = "2.0", features = ["legacy"] }
+clap = { version = "4.0", features = ["derive"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+hex = "0.4"
+tokio = { version = "1.0", features = ["full"] }
