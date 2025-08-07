@@ -1,0 +1,9 @@
+[package]
+name = "rust-app"
+version = "0.1.0"
+edition = "2021"
+authors = ["Your Name"]
+description = "A simple hello world program"
+
+[dependencies]
+# No dependencies needed for hello world

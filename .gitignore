@@ -1,0 +1,53 @@
+# Foundry
+cache/
+out/
+lib/
+
+# Rust
+target/
+**/*.rs.bk
+Cargo.lock
+
+# Node.js
+node_modules/
+.npm
+.next/
+dist/
+build/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# ESLint cache
+.eslintcache
