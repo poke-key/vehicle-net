@@ -5,6 +5,7 @@ lib/
 
 # Rust
 target/
+rust/target/
 **/*.rs.bk
 Cargo.lock
 
