@@ -17,7 +17,7 @@ jobs:
           submodules: recursive
 
       - name: Setup Rust
-        uses: actions/setup-rust@v1
+        uses: actions/setup-rust@v2
         with:
           rust-version: stable
 
@@ -45,14 +45,6 @@ jobs:
           set -e
           chmod +x scripts/test-integration.sh || true
           ./scripts/test-integration.sh
-
-      - name: Upload test artifacts
-        uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: integration-test-outputs
-          path: scripts/output/
-          retention-days: 7
 
       - name: Display test outputs
         if: always()
