@@ -100,7 +100,7 @@ main() {
         print_info "Dependencies found in lib/ directory (submodules)"
     else
         print_error "Required dependencies not found in lib/ directory"
-        print_info "Please ensure submodules are initialized: git submodule update --init --recursive"
+        print_info "Submodules should be in: contracts/lib/forge-std and contracts/lib/openzeppelin-contracts"
         exit 1
     fi
     
