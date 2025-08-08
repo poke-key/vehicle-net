@@ -1,0 +1,69 @@
+name: Integration Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  integration-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Cache Rust dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            rust/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Create output directory
+        run: mkdir -p scripts/output
+
+      - name: Run integration tests
+        run: |
+          chmod +x scripts/test-integration.sh
+          ./scripts/test-integration.sh
+
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: integration-test-outputs
+          path: scripts/output/
+          retention-days: 7
+
+      - name: Display test outputs
+        if: always()
+        run: |
+          echo "=== Integration Test Outputs ==="
+          if [ -d "scripts/output" ]; then
+            for file in scripts/output/*.txt; do
+              if [ -f "$file" ]; then
+                echo "=== $(basename "$file") ==="
+                cat "$file"
+                echo ""
+              fi
+            done
+          fi
