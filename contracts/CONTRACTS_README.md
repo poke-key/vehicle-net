@@ -13,12 +13,14 @@ The system consists of three core smart contracts:
 ## 📋 Features
 
 ### Vehicle Registry
+
 - **Vehicle Registration**: Each vehicle gets a unique on-chain identity linked to a dedicated wallet
 - **Metadata Management**: Store vehicle details, data types, and IPFS metadata hashes
 - **Access Control**: Only vehicle owners can update their vehicle information
 - **Registration Fees**: Configurable registration fees paid to the platform
 
 ### Data Marketplace
+
 - **Product Listings**: Vehicles can list data products with pricing and duration limits
 - **Purchase Logic**: Buyers pay in ETH for time-limited access to data streams
 - **Automated Payouts**: Payments automatically routed to vehicle wallets minus platform fees
@@ -26,6 +28,7 @@ The system consists of three core smart contracts:
 - **Platform Fees**: Configurable platform fee percentage (max 10%)
 
 ### Access Control
+
 - **Session Management**: Create and manage time-limited access sessions
 - **Request Tracking**: Monitor data access requests and usage patterns
 - **Concurrent Limits**: Configurable maximum concurrent sessions per user
@@ -40,41 +43,48 @@ The system consists of three core smart contracts:
 
 ### Installation
 
-1. Clone the repository:
+Step 1. Clone the repository:
+
 ```bash
 git clone <repository-url>
 cd vehicle-net/contracts
 ```
 
-2. Install dependencies:
+Step 2. Install dependencies:
+
 ```bash
 forge install
 ```
 
-3. Build contracts:
+Step 3. Build contracts:
+
 ```bash
 forge build
 ```
 
-4. Run tests:
+Step 4. Run tests:
+
 ```bash
 forge test
 ```
 
 ### Deployment
 
-1. Set up environment variables:
+Step 1. Set up environment variables:
+
 ```bash
 export PRIVATE_KEY="0x..."
 export RPC_URL="https://..."
 ```
 
-2. Deploy the system:
+Step 2. Deploy the system:
+
 ```bash
 forge script script/DeploySystem.s.sol --rpc-url $RPC_URL --broadcast --verify
 ```
 
-3. Run the demo (optional):
+Step 3. Run the demo (optional):
+
 ```bash
 export VEHICLE_REGISTRY_ADDRESS="0x..."
 export DATA_MARKETPLACE_ADDRESS="0x..."
@@ -89,6 +99,7 @@ forge script script/DemoScript.s.sol --rpc-url $RPC_URL --broadcast
 ### VehicleRegistry
 
 Main functions:
+
 - `registerVehicle(...)` - Register a new vehicle with metadata
 - `updateVehicleMetadata(...)` - Update vehicle data types and IPFS hash
 - `deactivateVehicle(uint256)` - Deactivate a vehicle
@@ -96,6 +107,7 @@ Main functions:
 - `isVehicleActive(uint256)` - Check if vehicle is active
 
 Events:
+
 - `VehicleRegistered` - Vehicle successfully registered
 - `VehicleUpdated` - Vehicle metadata updated
 - `VehicleDeactivated` - Vehicle deactivated
@@ -103,6 +115,7 @@ Events:
 ### DataMarketplace
 
 Main functions:
+
 - `listDataProduct(...)` - List a new data product
 - `updateDataProduct(...)` - Update existing product details
 - `purchaseDataAccess(...)` - Purchase time-limited access
@@ -111,6 +124,7 @@ Main functions:
 - `hasValidAccess(address, uint256)` - Check if user has valid access
 
 Events:
+
 - `DataProductListed` - New data product listed
 - `DataPurchased` - Data access purchased
 - `StreamingPaymentStarted` - Streaming payment initiated
@@ -119,6 +133,7 @@ Events:
 ### AccessControl
 
 Main functions:
+
 - `createAccessSession(uint256, address)` - Create new access session
 - `requestDataAccess(bytes32, string)` - Request data access in session
 - `terminateSession(bytes32, string)` - Terminate an active session
@@ -127,6 +142,7 @@ Main functions:
 - `getUserActiveSessions(address)` - Get all active sessions for user
 
 Events:
+
 - `AccessSessionCreated` - New session created
 - `DataAccessRequested` - Data access requested
 - `AccessSessionTerminated` - Session terminated
@@ -159,6 +175,7 @@ forge test --gas-report
 ```
 
 Test files:
+
 - `VehicleRegistry.t.sol` - Vehicle registration and management tests
 - `DataMarketplace.t.sol` - Marketplace functionality and payment tests
 - `AccessControl.t.sol` - Session management and access control tests
@@ -222,6 +239,7 @@ bytes32 sessionKey = accessControl.createAccessSession(productId, buyer);
 ### Gas Optimization
 
 The contracts are optimized for gas efficiency:
+
 - Packed structs for storage efficiency
 - Batch operations where possible
 - Efficient access pattern checking

@@ -127,6 +127,7 @@ start_daemon() {
     check_rust_directory
     cd rust
     
+    # Start the daemon with infinite loop
     cargo run -- \
         --index $vehicle_index \
         daemon \

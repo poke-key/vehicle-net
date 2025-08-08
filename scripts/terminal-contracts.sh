@@ -90,6 +90,15 @@ start_anvil() {
         print_success "Anvil started successfully (PID: $ANVIL_PID)"
         print_info "Anvil logs: scripts/output/anvil.log"
         print_info "To stop anvil: kill $ANVIL_PID"
+        print_info "Keep this terminal open to keep anvil running"
+        echo ""
+        
+        # Keep the script running to maintain anvil
+        print_info "Anvil is running in background. Press Ctrl+C to stop."
+        while check_anvil; do
+            sleep 5
+        done
+        print_warning "Anvil stopped"
     else
         print_error "Failed to start anvil"
         return 1
@@ -121,8 +130,8 @@ deploy_contracts() {
     
     # Check if anvil is running
     if ! check_anvil; then
-        print_error "Anvil is not running. Starting anvil first..."
-        start_anvil
+        print_error "Anvil is not running. Please start anvil first."
+        return 1
     fi
     
     print_success "Anvil is running on localhost:8545"
@@ -138,7 +147,7 @@ deploy_contracts() {
     
     # Deploy contracts
     cd contracts
-    run_command "Deploying smart contracts" "forge script script/DeploySystem.s.sol --rpc-url $RPC_URL --broadcast --verify"
+    run_command "Deploying smart contracts" "forge script script/DeploySystem.s.sol --rpc-url $RPC_URL --broadcast"
     cd ..
     
     print_success "🎉 Smart contracts deployed successfully!"
@@ -215,6 +224,11 @@ main() {
             build_contracts
             deploy_contracts
             ;;
+        "setup")
+            build_contracts
+            deploy_contracts
+            start_anvil
+            ;;
         "stop-anvil")
             stop_anvil
             ;;
@@ -225,19 +239,21 @@ main() {
             echo "Usage: $0 [command]"
             echo ""
             echo "Commands:"
-            echo "  start-anvil      - Start the local blockchain (anvil)"
+            echo "  start-anvil      - Start the local blockchain (anvil) - KEEP TERMINAL OPEN"
             echo "  build            - Build smart contracts"
             echo "  deploy           - Deploy contracts to local blockchain"
             echo "  build-and-deploy - Build and deploy contracts"
+            echo "  setup            - Build contracts and start anvil - KEEP TERMINAL OPEN"
             echo "  stop-anvil       - Stop the local blockchain"
             echo "  status           - Show blockchain and contract status"
             echo "  help             - Show this help message"
             echo ""
             echo "Examples:"
-            echo "  $0 build-and-deploy  # Build and deploy contracts"
-            echo "  $0 status            # Check current status"
+            echo "  $0 setup            # Build contracts and start anvil (keep terminal open)"
+            echo "  $0 start-anvil      # Start anvil only (keep terminal open)"
+            echo "  $0 status           # Check current status"
             echo ""
-            print_info "💡 For the demo, run: $0 build-and-deploy"
+            print_info "💡 For the demo, run: $0 setup"
             ;;
     esac
 }

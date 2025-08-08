@@ -10,6 +10,7 @@ lib/
 # Ignore local modifications to submodules
 contracts/lib/*/.git/
 contracts/lib/*/.*
+contracts/broadcast/
 
 # Rust
 target/

@@ -2,6 +2,8 @@
 
 This guide walks you through setting up a complete proof of concept demo of the Vehicle Network system, including blockchain contracts, vehicle nodes, and web interface.
 
+> **⚠️ Local Development Only**: This demo is configured for local development only. All blockchain operations run on a local Anvil instance with no external network dependencies or contract verification.
+
 ## 🎯 Demo Overview
 
 The Vehicle Network demo showcases:
@@ -64,11 +66,11 @@ git submodule update --init --recursive
 
 ### Step 2: Terminal 1 - Smart Contract Operations
 
-**Purpose**: Build and deploy smart contracts to the local blockchain
+**Purpose**: Build contracts and start local blockchain
 
 ```bash
-# From project root - Build and deploy contracts
-./scripts/terminal-contracts.sh build-and-deploy
+# From project root - Build contracts and start anvil
+./scripts/terminal-contracts.sh setup
 ```
 
 **Expected Output**:
@@ -77,7 +79,7 @@ git submodule update --init --recursive
 ================================
 Terminal 1: Smart Contract Operations
 ================================
-ℹ️ This terminal handles blockchain contract building and deployment
+ℹ️ This terminal handles contract building and local blockchain setup
 
 --- Initializing submodules ---
 Running: git submodule update --init --recursive --force
@@ -91,16 +93,16 @@ Running: forge build
 ℹ️ Build artifacts location: contracts/out/
 ℹ️ Built contracts: AccessControl, DataMarketplace, VehicleRegistry
 
---- Deploying Smart Contracts ---
-Running: forge script script/DeploySystem.s.sol --rpc-url http://localhost:8545 --broadcast --verify
-✅ Deploying smart contracts completed successfully
+--- Starting Anvil Blockchain ---
+ℹ️ Starting local Ethereum blockchain...
+ℹ️ This will run in the background
 
-🎉 Smart contracts deployed successfully!
-ℹ️ Contracts are now available on the local blockchain
-ℹ️ You can now register vehicles and start vehicle nodes
+✅ Anvil started successfully (PID: 4663)
+ℹ️ Anvil logs: scripts/output/anvil.log
+ℹ️ To stop anvil: kill 4663
 ```
 
-**Keep this terminal available** - you can use it to manage contracts and blockchain operations!
+**Keep this terminal available** - you can use it to manage the blockchain!
 
 ### Step 3: Terminal 2 - Web Application Development
 
@@ -304,13 +306,13 @@ Recent Transactions:
 ### Terminal 1: Smart Contract Operations
 
 ```bash
-# Build and deploy contracts
-./scripts/terminal-contracts.sh build-and-deploy
+# Build contracts and start anvil
+./scripts/terminal-contracts.sh setup
 
 # Check blockchain status
 ./scripts/terminal-contracts.sh status
 
-# Start anvil blockchain
+# Start anvil blockchain only
 ./scripts/terminal-contracts.sh start-anvil
 
 # Stop anvil blockchain
