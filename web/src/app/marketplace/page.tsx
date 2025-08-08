@@ -1,6 +1,6 @@
 "use client"
 
-import { VehicleListings } from '@/components/VehicleListings';
+import { MockMarketplace } from '@/components/MockMarketplace';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,7 +29,7 @@ export default function MarketplacePage() {
               <Shield className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
               <CardTitle>Authentication Required</CardTitle>
               <CardDescription>
-                You need to sign in with Porto to view vehicle data from the blockchain.
+                You need to sign in with Porto to access the vehicle data marketplace.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -49,7 +49,7 @@ export default function MarketplacePage() {
                 Sign in with Porto
               </Button>
               <p className="text-xs text-center text-gray-500">
-                Porto provides secure blockchain authentication and payment processing.
+                Porto provides secure authentication and payment processing.
               </p>
             </CardContent>
           </Card>
@@ -58,5 +58,5 @@ export default function MarketplacePage() {
     );
   }
 
-  return <VehicleListings />;
+  return <MockMarketplace />;
 }

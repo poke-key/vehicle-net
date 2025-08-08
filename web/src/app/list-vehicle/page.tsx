@@ -63,14 +63,14 @@ export default function ListVehicle() {
         3600, // 1 hour minimum
         2592000, // 30 days maximum
         "Sample vehicle data stream",
-        "https://api.example.com/vehicle/data"
+        "/api/mock/vehicles/data"
       );
       
       toast.success("Transaction submitted! Your vehicle will be listed once confirmed.");
       
       // Wait for confirmation
       if (isConfirmed) {
-        toast.success("Vehicle data listed successfully on the blockchain!");
+        toast.success("Vehicle data listed successfully in the marketplace!");
         setSubmissionSuccess(true);
         
         // Reset after successful submission
@@ -136,7 +136,7 @@ export default function ListVehicle() {
             List Your Vehicle Data
           </h1>
           <p className="text-muted-foreground">
-            Share your vehicle's data streams and earn crypto from interested buyers
+            Share your vehicle's data streams and earn money from interested buyers
           </p>
         </div>
 

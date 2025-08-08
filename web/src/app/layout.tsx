@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "VehicleNet - Decentralized Vehicle Data Marketplace",
-  description: "Buy and sell real-time vehicle data streams securely on the blockchain. Connect directly with vehicle owners and data consumers in a trustless environment.",
+  description: "Buy and sell real-time vehicle data streams in a secure marketplace. Connect directly with vehicle owners and data consumers.",
 };
 
 export default function RootLayout({

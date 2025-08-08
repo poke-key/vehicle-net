@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, Filter, Car, MapPin, Clock, DollarSign } from "lucide-react";
 import Link from "next/link";
-import { useAllVehicles } from "@/hooks/useVehicleData";
+import { useAllVehicles } from "@/hooks/useMockVehicleData";
 
 export default function Dashboard() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -33,7 +33,7 @@ export default function Dashboard() {
           <Car className="mx-auto h-12 w-12 text-muted-foreground mb-4 animate-pulse" />
           <h3 className="text-lg font-semibold mb-2">Loading vehicles...</h3>
           <p className="text-muted-foreground">
-            Fetching data from the blockchain...
+            Loading vehicle listings...
           </p>
         </div>
       </div>
@@ -47,7 +47,7 @@ export default function Dashboard() {
           <Car className="mx-auto h-12 w-12 text-red-500 mb-4" />
           <h3 className="text-lg font-semibold mb-2">Failed to load vehicles</h3>
           <p className="text-muted-foreground mb-4">
-            Could not connect to the blockchain. Please check your connection.
+            Could not load vehicle data. Please try again.
           </p>
           <Button onClick={() => window.location.reload()}>Try Again</Button>
         </div>

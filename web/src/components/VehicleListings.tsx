@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { useAllVehicles, type VehicleWithMetadata } from '@/hooks/useVehicleData';
+import { useAllVehicles, type VehicleWithMetadata } from '@/hooks/useMockVehicleData';
 import { formatEther } from 'viem';
 
 export const VehicleListings: React.FC = () => {
@@ -20,7 +20,7 @@ export const VehicleListings: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-          <span className="ml-2 text-gray-600">Loading vehicles from blockchain...</span>
+          <span className="ml-2 text-gray-600">Loading vehicles...</span>
         </div>
       </div>
     );
@@ -48,7 +48,7 @@ export const VehicleListings: React.FC = () => {
               Registered Vehicles
             </h2>
             <p className="text-gray-600">
-              View all vehicles registered on the blockchain
+              Browse available vehicle data streams in the marketplace
             </p>
           </div>
           <Button onClick={refetch} variant="outline" size="sm">
@@ -62,13 +62,8 @@ export const VehicleListings: React.FC = () => {
           <div className="max-w-md mx-auto">
             <h3 className="text-lg font-medium text-gray-900 mb-2">No vehicles registered yet</h3>
             <p className="text-gray-500 mb-4">
-              Use the vehicle runner script to register vehicles on the blockchain.
+              No vehicle data available at the moment. Check back later for new listings.
             </p>
-            <div className="bg-gray-50 border border-gray-200 rounded-md p-4">
-              <code className="text-sm text-gray-800">
-                ./scripts/run_vehicle.sh VIN123ABC 12000 85
-              </code>
-            </div>
           </div>
         </div>
       ) : (
@@ -91,8 +86,8 @@ export const VehicleListings: React.FC = () => {
 
               <div className="space-y-2 mb-4">
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Vehicle ID:</span>
-                  <span className="text-sm font-medium">#{vehicle.id}</span>
+                  <span className="text-sm text-gray-600">Price per hour:</span>
+                  <span className="text-sm font-medium">{vehicle.price} ETH</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Owner:</span>
@@ -103,10 +98,18 @@ export const VehicleListings: React.FC = () => {
                   <span className="text-sm font-mono">{vehicle.wallet.slice(0, 8)}...</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Registered:</span>
-                  <span className="text-sm font-medium">
-                    {formatTimestamp(vehicle.registrationTimestamp)}
-                  </span>
+                  <span className="text-sm text-gray-600">Location:</span>
+                  <span className="text-sm font-medium">{vehicle.location}</span>
+                </div>
+                {vehicle.batteryHealth && (
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Battery Health:</span>
+                    <span className="text-sm font-medium">{vehicle.batteryHealth}%</span>
+                  </div>
+                )}
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">Mileage:</span>
+                  <span className="text-sm font-medium">{vehicle.mileage?.toLocaleString()} mi</span>
                 </div>
               </div>
 
