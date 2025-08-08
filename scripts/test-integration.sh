@@ -59,7 +59,7 @@ run_command() {
     echo ""
 }
 
-# Function to test Rust application
+# Function to test Rust application with new command structure
 test_rust_application() {
     print_header "Testing Rust Application"
     
@@ -70,8 +70,8 @@ test_rust_application() {
     # Create output directory if it doesn't exist
     mkdir -p "../scripts/output"
     
-    # Test with different vehicle indices and commands
-    print_section "Testing Rust with different vehicle indices"
+    # Test with different vehicle indices and new commands
+    print_section "Testing Rust with different vehicle indices and commands"
     
     for i in {0..2}; do
         echo "Testing vehicle index: $i"
@@ -107,13 +107,110 @@ test_rust_application() {
             cat "../scripts/output/rust_sign_$i.txt"
         fi
         
+        # Test sign-report with custom parameters
+        if cargo run --release -- --index "$i" sign-report --vin "TEST123456789" --mileage 50000 --battery-health 85 > "../scripts/output/rust_sign_custom_$i.txt" 2>&1; then
+            print_success "Vehicle $i sign-report with custom params passed"
+        else
+            print_error "Vehicle $i sign-report with custom params failed"
+            cat "../scripts/output/rust_sign_custom_$i.txt"
+        fi
+        
+        # Test balance command (may fail without blockchain)
+        if cargo run --release -- --index "$i" balance > "../scripts/output/rust_balance_$i.txt" 2>&1; then
+            print_success "Vehicle $i balance command passed"
+            echo "Balance output preview:"
+            head -5 "../scripts/output/rust_balance_$i.txt"
+            echo "..."
+        else
+            print_warning "Vehicle $i balance command failed (expected without blockchain)"
+            echo "Balance output:"
+            cat "../scripts/output/rust_balance_$i.txt"
+        fi
+        
+        # Test get-vehicle command (may fail without blockchain)
+        if cargo run --release -- --index "$i" get-vehicle > "../scripts/output/rust_get_vehicle_$i.txt" 2>&1; then
+            print_success "Vehicle $i get-vehicle command passed"
+            echo "Get-vehicle output preview:"
+            head -5 "../scripts/output/rust_get_vehicle_$i.txt"
+            echo "..."
+        else
+            print_warning "Vehicle $i get-vehicle command failed (expected without blockchain)"
+            echo "Get-vehicle output:"
+            cat "../scripts/output/rust_get_vehicle_$i.txt"
+        fi
+        
         echo ""
     done
+    
+    # Test advanced node features
+    print_section "Testing Advanced Node Features"
+    
+    # Test daemon command startup (should fail without blockchain but test structure)
+    echo "Testing daemon command structure..."
+    if timeout 5s cargo run --release -- --index 0 daemon --vin "TEST123456789" --starting-mileage 1000 --starting-battery-health 95 --interval 60 > "../scripts/output/rust_daemon_test.txt" 2>&1; then
+        print_success "Daemon command structure test passed"
+        echo "Daemon output preview:"
+        head -10 "../scripts/output/rust_daemon_test.txt"
+        echo "..."
+    else
+        print_warning "Daemon command failed (expected without blockchain)"
+        echo "Daemon output:"
+        cat "../scripts/output/rust_daemon_test.txt"
+    fi
+    
+    # Test register-vehicle command structure (should fail without blockchain)
+    echo "Testing register-vehicle command structure..."
+    if cargo run --release -- --index 0 register-vehicle --vin "TEST123456789" --manufacturer "Tesla" --model "Model 3" --year 2023 --fee 0.01 > "../scripts/output/rust_register_vehicle_test.txt" 2>&1; then
+        print_success "Register-vehicle command structure test passed"
+        echo "Register-vehicle output preview:"
+        head -10 "../scripts/output/rust_register_vehicle_test.txt"
+        echo "..."
+    else
+        print_warning "Register-vehicle command failed (expected without blockchain)"
+        echo "Register-vehicle output:"
+        cat "../scripts/output/rust_register_vehicle_test.txt"
+    fi
+    
+    # Test submit-report command structure (should fail without blockchain)
+    echo "Testing submit-report command structure..."
+    if cargo run --release -- --index 0 submit-report --vin "TEST123456789" --mileage 50000 --battery-health 85 > "../scripts/output/rust_submit_report_test.txt" 2>&1; then
+        print_success "Submit-report command structure test passed"
+        echo "Submit-report output preview:"
+        head -10 "../scripts/output/rust_submit_report_test.txt"
+        echo "..."
+    else
+        print_warning "Submit-report command failed (expected without blockchain)"
+        echo "Submit-report output:"
+        cat "../scripts/output/rust_submit_report_test.txt"
+    fi
+    
+    # Test list-data command structure (should fail without blockchain)
+    echo "Testing list-data command structure..."
+    if cargo run --release -- --index 0 list-data --data-type "GPS" --price 0.001 --min-duration 3600 --max-duration 86400 --description "Real-time GPS data" > "../scripts/output/rust_list_data_test.txt" 2>&1; then
+        print_success "List-data command structure test passed"
+        echo "List-data output preview:"
+        head -10 "../scripts/output/rust_list_data_test.txt"
+        echo "..."
+    else
+        print_warning "List-data command failed (expected without blockchain)"
+        echo "List-data output:"
+        cat "../scripts/output/rust_list_data_test.txt"
+    fi
+    
+    # Test get-vehicle with specific parameters
+    echo "Testing get-vehicle with specific parameters..."
+    if cargo run --release -- --index 0 get-vehicle --id 1 > "../scripts/output/rust_get_vehicle_by_id_test.txt" 2>&1; then
+        print_success "Get-vehicle by ID command structure test passed"
+    else
+        print_warning "Get-vehicle by ID command failed (expected without blockchain)"
+        echo "Get-vehicle by ID output:"
+        cat "../scripts/output/rust_get_vehicle_by_id_test.txt"
+    fi
     
     cd ..
 }
 
-# Function to test smart contracts
+# Function to test smart contracts with new structure
 test_smart_contracts() {
     print_header "Testing Smart Contracts"
     
@@ -132,8 +229,47 @@ test_smart_contracts() {
     # Build contracts
     run_command "Building smart contracts" "forge build"
     
+    # Run individual contract tests
+    print_section "Running individual contract tests"
+    
+    # Test AccessControl contract
+    echo "Testing AccessControl contract..."
+    if forge test --match-contract AccessControl -vv > "../scripts/output/access_control_test.txt" 2>&1; then
+        print_success "AccessControl tests passed"
+    else
+        print_error "AccessControl tests failed"
+        cat "../scripts/output/access_control_test.txt"
+    fi
+    
+    # Test VehicleRegistry contract
+    echo "Testing VehicleRegistry contract..."
+    if forge test --match-contract VehicleRegistry -vv > "../scripts/output/vehicle_registry_test.txt" 2>&1; then
+        print_success "VehicleRegistry tests passed"
+    else
+        print_error "VehicleRegistry tests failed"
+        cat "../scripts/output/vehicle_registry_test.txt"
+    fi
+    
+    # Test DataMarketplace contract
+    echo "Testing DataMarketplace contract..."
+    if forge test --match-contract DataMarketplace -vv > "../scripts/output/data_marketplace_test.txt" 2>&1; then
+        print_success "DataMarketplace tests passed"
+    else
+        print_error "DataMarketplace tests failed"
+        cat "../scripts/output/data_marketplace_test.txt"
+    fi
+    
+    # Test Integration tests
+    echo "Testing Integration tests..."
+    if forge test --match-contract Integration -vv > "../scripts/output/integration_test.txt" 2>&1; then
+        print_success "Integration tests passed"
+    else
+        print_error "Integration tests failed"
+        cat "../scripts/output/integration_test.txt"
+    fi
+    
     # Run all tests with verbose output
-    print_section "Running smart contract tests"
+    print_section "Running all smart contract tests"
     echo "Running: forge test -vvv"
     echo ""
     
@@ -151,7 +287,7 @@ test_smart_contracts() {
     cd ..
 }
 
-# Function to test contract integration
+# Function to test contract integration with new Rust structure
 test_contract_integration() {
     print_header "Testing Contract Integration"
     
@@ -190,6 +326,22 @@ test_contract_integration() {
         return 1
     fi
     
+    # Test new commands that may work offline
+    print_section "Testing new Rust commands"
+    
+    # Test get-vehicle command (may fail without blockchain)
+    echo "Testing get-vehicle command..."
+    if cargo run --release -- --index 0 get-vehicle > "../scripts/output/integration_get_vehicle.txt" 2>&1; then
+        print_success "Get-vehicle command works"
+        echo "Get-vehicle output preview:"
+        head -10 "../scripts/output/integration_get_vehicle.txt"
+        echo "..."
+    else
+        print_warning "Get-vehicle command failed (expected without blockchain)"
+        echo "Get-vehicle output:"
+        cat "../scripts/output/integration_get_vehicle.txt"
+    fi
+    
     # Test that the app can start (even if blockchain connection fails)
     print_section "Testing app startup with contract integration"
     echo "Testing app startup (blockchain connection may fail)..."
@@ -208,6 +360,48 @@ test_contract_integration() {
     cd ..
 }
 
+# Function to test contract bindings generation
+test_contract_bindings() {
+    print_header "Testing Contract Bindings Generation"
+    
+    cd rust
+    
+    # Create output directory if it doesn't exist
+    mkdir -p "../scripts/output"
+    
+    print_section "Checking contract binding files"
+    
+    # Check if contract binding files exist
+    local binding_files=(
+        "src/contracts/access_control.rs"
+        "src/contracts/data_marketplace.rs"
+        "src/contracts/vehicle_registry.rs"
+        "src/contracts/mod.rs"
+    )
+    
+    for file in "${binding_files[@]}"; do
+        if [ -f "$file" ]; then
+            print_success "Contract binding file exists: $file"
+            echo "File size: $(wc -l < "$file") lines"
+        else
+            print_error "Contract binding file missing: $file"
+        fi
+    done
+    
+    # Test build.rs compilation
+    print_section "Testing build script compilation"
+    if cargo build --release > "../scripts/output/build_script_test.txt" 2>&1; then
+        print_success "Build script and contract bindings compile successfully"
+    else
+        print_error "Build script compilation failed"
+        cat "../scripts/output/build_script_test.txt"
+        cd ..
+        return 1
+    fi
+    
+    cd ..
+}
+
 # Function to display test summary
 show_test_summary() {
     print_header "Test Summary"
@@ -220,10 +414,24 @@ show_test_summary() {
     echo "- output/rust_help_*.txt: Rust help command output for each vehicle"
     echo "- output/rust_info_*.txt: Rust info command output for each vehicle"
     echo "- output/rust_sign_*.txt: Rust sign-report command output for each vehicle"
-    echo "- output/contracts_test_output.txt: Smart contract test results"
+    echo "- output/rust_sign_custom_*.txt: Rust sign-report with custom params output for each vehicle"
+    echo "- output/rust_balance_*.txt: Rust balance command output for each vehicle"
+    echo "- output/rust_get_vehicle_*.txt: Rust get-vehicle command output for each vehicle"
+    echo "- output/rust_daemon_test.txt: Rust daemon command structure test"
+    echo "- output/rust_register_vehicle_test.txt: Rust register-vehicle command structure test"
+    echo "- output/rust_submit_report_test.txt: Rust submit-report command structure test"
+    echo "- output/rust_list_data_test.txt: Rust list-data command structure test"
+    echo "- output/rust_get_vehicle_by_id_test.txt: Rust get-vehicle by ID command test"
+    echo "- output/access_control_test.txt: AccessControl contract test results"
+    echo "- output/vehicle_registry_test.txt: VehicleRegistry contract test results"
+    echo "- output/data_marketplace_test.txt: DataMarketplace contract test results"
+    echo "- output/integration_test.txt: Integration test results"
+    echo "- output/contracts_test_output.txt: All smart contract test results"
     echo "- output/integration_check.txt: Contract client compilation check"
     echo "- output/integration_offline.txt: Offline contract operations test"
+    echo "- output/integration_get_vehicle.txt: Get-vehicle command test"
     echo "- output/integration_startup.txt: App startup with contract integration test"
+    echo "- output/build_script_test.txt: Build script compilation test"
     
     echo ""
     print_success "Integration testing completed!"
@@ -238,10 +446,24 @@ cleanup_test_files() {
         "output/rust_help_*.txt"
         "output/rust_info_*.txt"
         "output/rust_sign_*.txt"
+        "output/rust_sign_custom_*.txt"
+        "output/rust_balance_*.txt"
+        "output/rust_get_vehicle_*.txt"
+        "output/rust_daemon_test.txt"
+        "output/rust_register_vehicle_test.txt"
+        "output/rust_submit_report_test.txt"
+        "output/rust_list_data_test.txt"
+        "output/rust_get_vehicle_by_id_test.txt"
+        "output/access_control_test.txt"
+        "output/vehicle_registry_test.txt"
+        "output/data_marketplace_test.txt"
+        "output/integration_test.txt"
         "output/contracts_test_output.txt"
         "output/integration_check.txt"
         "output/integration_offline.txt"
+        "output/integration_get_vehicle.txt"
         "output/integration_startup.txt"
+        "output/build_script_test.txt"
     )
     
     for pattern in "${files_to_clean[@]}"; do
@@ -292,6 +514,7 @@ main() {
     echo "1. Rust application compilation and execution"
     echo "2. Smart contract compilation and tests"
     echo "3. Contract integration between Rust and Solidity"
+    echo "4. Contract bindings generation and compilation"
     echo ""
     
     # Check if we're in the right directory structure
@@ -336,6 +559,7 @@ main() {
     test_rust_application
     test_smart_contracts
     test_contract_integration
+    test_contract_bindings
     show_test_summary
     
     echo ""

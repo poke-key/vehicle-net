@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Vehicle Net - Smart Contract Build Script
-# This script builds the smart contracts using Foundry
+# Vehicle Net - Smart Contract Build and Deploy Script
+# This script builds and optionally deploys the smart contracts using Foundry
 
 set -e  # Exit on any error
 
@@ -59,19 +59,79 @@ run_command() {
     echo ""
 }
 
+# Function to deploy contracts
+deploy_contracts() {
+    print_section "Deploying Smart Contracts"
+    
+    # Check if anvil is running
+    if ! curl -s -X POST -H "Content-Type: application/json" \
+        --data '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
+        http://localhost:8545 > /dev/null 2>&1; then
+        print_error "Anvil is not running. Please start anvil first:"
+        print_info "cd contracts && anvil"
+        return 1
+    fi
+    
+    print_success "Anvil is running on localhost:8545"
+    
+    # Set up deployment environment
+    export PRIVATE_KEY="0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+    export RPC_URL="http://localhost:8545"
+    
+    print_info "Using default anvil account for deployment"
+    print_info "Private Key: ${PRIVATE_KEY:0:10}..."
+    print_info "RPC URL: $RPC_URL"
+    echo ""
+    
+    # Deploy contracts
+    run_command "Deploying smart contracts" "forge script script/DeploySystem.s.sol --rpc-url $RPC_URL --broadcast --verify"
+    
+    print_success "🎉 Smart contracts deployed successfully!"
+    print_info "Contracts are now available on the local blockchain"
+    print_info "You can now register vehicles and start vehicle nodes"
+}
+
 # Main build function
 main() {
-    print_header "Vehicle Net - Smart Contract Build"
+    local deploy_only=false
+    local build_only=false
+    
+    # Parse command line arguments
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            --deploy)
+                deploy_only=true
+                shift
+                ;;
+            --build-only)
+                build_only=true
+                shift
+                ;;
+            --help|-h)
+                echo "Usage: $0 [OPTIONS]"
+                echo ""
+                echo "Options:"
+                echo "  --deploy      Deploy contracts to local blockchain (requires anvil running)"
+                echo "  --build-only  Only build contracts, don't deploy"
+                echo "  --help, -h    Show this help message"
+                echo ""
+                echo "Default behavior: Build contracts only"
+                echo "To deploy: $0 --deploy"
+                exit 0
+                ;;
+            *)
+                print_error "Unknown option: $1"
+                echo "Use --help for usage information"
+                exit 1
+                ;;
+        esac
+    done
     
     # Store the original directory
     local original_dir=$(pwd)
     
     # Set up trap to return to original directory on exit
     trap 'cd "$original_dir"' EXIT
-    
-    # Initialize and update submodules from project root
-    print_section "Initializing submodules"
-    run_command "Initializing submodules" "git submodule update --init --recursive --force"
     
     # Check if we're in the right directory structure
     if [ ! -d "contracts" ]; then
@@ -92,7 +152,16 @@ main() {
     
     print_info "Foundry version: $(forge --version)"
     echo ""
-
+    
+    if [ "$deploy_only" = true ]; then
+        # Only deploy, skip build
+        deploy_contracts
+        return 0
+    fi
+    
+    # Initialize and update submodules from project root
+    print_section "Initializing submodules"
+    run_command "Initializing submodules" "git submodule update --init --recursive --force"
     
     # Check and update submodules
     print_section "Checking submodules"
@@ -103,28 +172,6 @@ main() {
         print_info "Submodules should be in: contracts/lib/forge-std and contracts/lib/openzeppelin-contracts"
         exit 1
     fi
-    
-    # Debug: Check what was installed
-    print_section "Checking installed dependencies"
-    if [ -d "lib" ]; then
-        echo "Contents of lib directory:"
-        ls -la lib/
-        if [ -d "lib/forge-std" ]; then
-            echo "forge-std contents:"
-            ls -la lib/forge-std/
-            if [ -d "lib/forge-std/src" ]; then
-                echo "forge-std/src contents:"
-                ls -la lib/forge-std/src/
-            fi
-        fi
-        if [ -d "lib/openzeppelin-contracts" ]; then
-            echo "openzeppelin-contracts contents:"
-            ls -la lib/openzeppelin-contracts/
-        fi
-    else
-        echo "lib directory does not exist!"
-    fi
-    echo ""
     
     # Build contracts
     run_command "Building smart contracts" "forge build"
@@ -150,29 +197,17 @@ main() {
     echo ""
     print_success "🎉 Smart contract build completed!"
     
+    # Deploy if requested
+    if [ "$build_only" = false ]; then
+        echo ""
+        print_info "To deploy contracts to local blockchain, run:"
+        print_info "$0 --deploy"
+        print_info "Make sure anvil is running first: cd contracts && anvil"
+    fi
+    
     # Return to original directory
     cd "$original_dir"
 }
-
-# Parse command line arguments
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        --help|-h)
-            echo "Usage: $0 [OPTIONS]"
-            echo ""
-            echo "Options:"
-            echo "  --help, -h   Show this help message"
-            echo ""
-            echo "This script builds the smart contracts using Foundry."
-            exit 0
-            ;;
-        *)
-            print_error "Unknown option: $1"
-            echo "Use --help for usage information"
-            exit 1
-            ;;
-    esac
-done
 
 # Run main function
 main "$@"
