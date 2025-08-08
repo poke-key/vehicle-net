@@ -42,7 +42,7 @@ export const Card: React.FC<CardProps> = ({
 
   return (
     <div className={cn(
-      'bg-white rounded-lg border border-gray-200 shadow-sm',
+      'bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm',
       paddingClasses[padding],
       className
     )}>
@@ -58,13 +58,13 @@ export const CardHeader: React.FC<CardHeaderProps> = ({ children, className }) =
 );
 
 export const CardTitle: React.FC<CardTitleProps> = ({ children, className }) => (
-  <h3 className={cn("text-lg font-semibold leading-none tracking-tight", className)}>
+  <h3 className={cn("text-lg font-semibold leading-none tracking-tight text-gray-900 dark:text-white", className)}>
     {children}
   </h3>
 );
 
 export const CardDescription: React.FC<CardDescriptionProps> = ({ children, className }) => (
-  <p className={cn("text-sm text-muted-foreground", className)}>
+  <p className={cn("text-sm text-gray-600 dark:text-gray-400", className)}>
     {children}
   </p>
 );
