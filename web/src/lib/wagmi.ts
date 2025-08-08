@@ -1,15 +1,16 @@
 import { http, createConfig, createStorage } from 'wagmi'
-import { baseSepolia, mainnet } from 'wagmi/chains'
+import { baseSepolia, mainnet, localhost } from 'wagmi/chains'
 import { Porto } from 'porto'
 
-// Initialize Porto
+// Initialize Porto for auth
 Porto.create()
 
 export const wagmiConfig = createConfig({
-  chains: [baseSepolia, mainnet],
+  chains: [localhost, baseSepolia, mainnet],
   connectors: [],
   storage: createStorage({ storage: localStorage }),
   transports: {
+    [localhost.id]: http('http://localhost:8545'),
     [baseSepolia.id]: http(),
     [mainnet.id]: http(),
   },

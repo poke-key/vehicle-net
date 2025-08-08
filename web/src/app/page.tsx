@@ -23,9 +23,9 @@ export default function Home() {
           </p>
           <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
             <ConnectWallet />
-            <Link href="/dashboard">
+            <Link href="/vehicles">
               <Button variant="outline" size="lg">
-                Explore Marketplace
+                View Vehicles
               </Button>
             </Link>
           </div>
