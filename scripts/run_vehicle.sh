@@ -61,6 +61,39 @@ VEHICLE_INDEX=$(echo -n "$VIN" | cksum | awk '{print $1 % 100}')
 
 echo "🔧 Vehicle Index: $VEHICLE_INDEX"
 
+# Get the vehicle address that will be generated  
+echo "💰 Getting vehicle address..."
+TEMP_OUTPUT=$(./$BINARY_PATH --index $VEHICLE_INDEX --rpc-url "$RPC_URL" --registry-address "$REGISTRY_ADDRESS" --marketplace-address "$MARKETPLACE_ADDRESS" --access-control-address "$ACCESS_CONTROL_ADDRESS" balance 2>&1 || true)
+VEHICLE_ADDRESS=$(echo "$TEMP_OUTPUT" | grep -o "Address: 0x[a-fA-F0-9]*" | cut -d' ' -f2)
+cd ..
+
+if [ -n "$VEHICLE_ADDRESS" ]; then
+    echo "🏦 Vehicle Address: $VEHICLE_ADDRESS"
+    
+    # Check if vehicle address has sufficient balance (need at least 0.1 ETH for transactions)
+    BALANCE=$(cast balance --rpc-url "$RPC_URL" "$VEHICLE_ADDRESS" 2>/dev/null || echo "0")
+    REQUIRED_BALANCE="100000000000000000" # 0.1 ETH in wei
+    
+    if [ "$BALANCE" -lt "$REQUIRED_BALANCE" ]; then
+        echo "💸 Funding vehicle address with ETH for gas fees..."
+        cast send \
+            --rpc-url "$RPC_URL" \
+            --private-key "$PRIVATE_KEY" \
+            "$VEHICLE_ADDRESS" \
+            --value 0.5ether > /dev/null 2>&1
+        
+        if [ $? -eq 0 ]; then
+            echo "✅ Vehicle address funded successfully"
+        else
+            echo "⚠️  Failed to fund vehicle address, attempting to continue..."
+        fi
+    else
+        echo "✅ Vehicle address already has sufficient balance"
+    fi
+else
+    echo "⚠️  Could not determine vehicle address, attempting to continue..."
+fi
+
 # First, register the vehicle
 echo "📝 Registering vehicle..."
 ./$BINARY_PATH \
