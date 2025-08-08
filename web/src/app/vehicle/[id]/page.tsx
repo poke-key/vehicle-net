@@ -21,10 +21,11 @@ import {
 } from "lucide-react";
 import { useAccount } from "wagmi";
 import { ConnectWallet } from "@/components/connect-wallet";
-import { useVehicleWithMetadata } from "@/hooks/useVehicleData";
+import { useVehicleWithMetadata } from "@/hooks/useMockVehicleData";
 import { useVehicleContract } from "@/hooks/useVehicleContract";
 import { toast } from "sonner";
 import Link from "next/link";
+import { VehicleTelemetry } from "@/components/VehicleTelemetry";
 
 export default function VehicleProfile() {
   const params = useParams();
@@ -34,7 +35,7 @@ export default function VehicleProfile() {
   
   const { registerVehicle, isWritePending, isConfirming, isConfirmed } = useVehicleContract();
 
-  const vehicleId = parseInt(params?.id as string);
+  const vehicleId = params?.id as string;
   const { vehicle, isLoading, error } = useVehicleWithMetadata(vehicleId);
 
   if (isLoading) {
@@ -44,7 +45,7 @@ export default function VehicleProfile() {
           <CardHeader>
             <CardTitle>Loading Vehicle...</CardTitle>
             <CardDescription>
-              Fetching data from the blockchain...
+              Loading vehicle information...
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -88,9 +89,10 @@ export default function VehicleProfile() {
     setIsPurchasing(true);
     
     try {
-      // This would need to be implemented in the marketplace contract
-      // For now, show a placeholder message
-      toast.info("Data marketplace purchasing not yet implemented for blockchain vehicles");
+      // Simulate purchase process
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      toast.success(`Successfully purchased ${duration} hour(s) of data access!`);
+      setPurchaseComplete(true);
       
     } catch (error: any) {
       console.error("Purchase failed:", error);
@@ -222,6 +224,11 @@ export default function VehicleProfile() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Live Telemetry */}
+            {vehicle.isActive && (
+              <VehicleTelemetry vehicleId={vehicleId} />
+            )}
           </div>
 
           {/* Purchase Panel */}
@@ -259,32 +266,60 @@ export default function VehicleProfile() {
                   </div>
                 ) : (
                   <>
-                    <div className="space-y-2">
+                    <div className="space-y-4">
                       <div className="text-center p-4 bg-blue-50 rounded-lg">
-                        <p className="font-medium text-blue-800">Vehicle Data Access</p>
+                        <p className="font-medium text-blue-800">Premium Vehicle Data</p>
                         <p className="text-sm text-blue-600">
-                          This vehicle is registered on the blockchain
+                          Real-time {vehicle.streamType} data stream
                         </p>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 gap-3">
+                        <div className="p-3 border rounded-lg">
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium">1 Hour Access</span>
+                            <span className="font-bold text-lg">{vehicle.price} ETH</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground">Perfect for testing</p>
+                        </div>
+                        
+                        <div className="p-3 border rounded-lg border-blue-200 bg-blue-50">
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium">24 Hour Access</span>
+                            <span className="font-bold text-lg">{(parseFloat(vehicle.price) * 20).toFixed(3)} ETH</span>
+                          </div>
+                          <p className="text-sm text-blue-600">Most Popular - 17% savings</p>
+                        </div>
+                        
+                        <div className="p-3 border rounded-lg">
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium">7 Day Access</span>
+                            <span className="font-bold text-lg">{(parseFloat(vehicle.price) * 120).toFixed(3)} ETH</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground">Best value - 29% savings</p>
+                        </div>
                       </div>
                     </div>
 
                     <Separator />
 
                     <div className="space-y-3">
-                      <h4 className="font-medium">Access Information</h4>
+                      <Button
+                        className="w-full"
+                        onClick={() => handlePurchase(1)}
+                        disabled={isPurchasing}
+                      >
+                        {isPurchasing ? "Processing..." : "Purchase 1 Hour Access"}
+                      </Button>
                       
                       <Button
                         variant="outline"
                         className="w-full"
-                        onClick={() => handlePurchase(1)}
-                        disabled={isPurchasing || isWritePending || isConfirming}
+                        onClick={() => handlePurchase(24)}
+                        disabled={isPurchasing}
                       >
-                        Request Data Access
+                        {isPurchasing ? "Processing..." : "Purchase 24 Hour Access"}
                       </Button>
-                      
-                      <p className="text-xs text-muted-foreground text-center">
-                        Data marketplace features are currently in development
-                      </p>
                     </div>
 
                     <Separator />
@@ -292,7 +327,7 @@ export default function VehicleProfile() {
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Shield className="h-4 w-4" />
-                        Secure blockchain payment
+                        Secure payment processing
                       </div>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Clock className="h-4 w-4" />

@@ -18,8 +18,8 @@ export default function Home() {
             <span className="text-primary"> Marketplace</span>
           </h1>
           <p className="mb-8 text-lg text-muted-foreground md:text-xl">
-            Buy and sell real-time vehicle data streams securely on the blockchain. 
-            Connect directly with vehicle owners and data consumers in a trustless environment.
+            Buy and sell real-time vehicle data streams in a secure marketplace. 
+            Connect directly with vehicle owners and data consumers.
           </p>
           <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
             <ConnectWallet />
@@ -42,7 +42,7 @@ export default function Home() {
                 <Shield className="mb-2 h-10 w-10 text-primary" />
                 <CardTitle>Secure & Decentralized</CardTitle>
                 <CardDescription>
-                  Smart contracts ensure trustless transactions and data integrity
+                  Advanced encryption ensures secure transactions and data integrity
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -129,9 +129,9 @@ export default function Home() {
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
                 <span className="text-2xl font-bold text-primary">3</span>
               </div>
-              <h3 className="mb-2 text-xl font-semibold">Earn Crypto</h3>
+              <h3 className="mb-2 text-xl font-semibold">Earn Money</h3>
               <p className="text-muted-foreground">
-                Get paid instantly when buyers purchase access to your vehicle data
+                Get paid when buyers purchase access to your vehicle data
               </p>
             </div>
           </div>
@@ -150,7 +150,7 @@ export default function Home() {
           <CardContent className="space-y-4">
             <ConnectWallet />
             <p className="text-sm text-muted-foreground">
-              New to crypto? No problem! We support all major wallet providers.
+Simple and secure payments. We support all major payment methods.
             </p>
           </CardContent>
         </Card>

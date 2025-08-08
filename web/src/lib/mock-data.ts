@@ -182,7 +182,7 @@ export const mockDataProducts = [
     minDuration: 3600, // 1 hour
     maxDuration: 2592000, // 30 days
     description: "Real-time Tesla Model 3 telemetry including battery health, charging data, and performance metrics",
-    apiEndpoint: "https://api.vehiclenet.com/v1/vehicles/1/telemetry",
+    apiEndpoint: "/api/mock/vehicles/1/telemetry",
     isActive: true
   },
   {
@@ -193,7 +193,7 @@ export const mockDataProducts = [
     minDuration: 1800, // 30 minutes
     maxDuration: 1209600, // 14 days
     description: "Precise GPS tracking data from Tesla Model Y with sub-meter accuracy",
-    apiEndpoint: "https://api.vehiclenet.com/v1/vehicles/2/gps",
+    apiEndpoint: "/api/mock/vehicles/2/gps",
     isActive: true
   },
   {
@@ -204,7 +204,7 @@ export const mockDataProducts = [
     minDuration: 3600,
     maxDuration: 604800, // 7 days
     description: "Affordable GPS data stream from Chevrolet Bolt EV for fleet tracking applications",
-    apiEndpoint: "https://api.vehiclenet.com/v1/vehicles/4/gps",
+    apiEndpoint: "/api/mock/vehicles/4/gps",
     isActive: true
   },
   {
@@ -215,7 +215,7 @@ export const mockDataProducts = [
     minDuration: 7200, // 2 hours
     maxDuration: 2592000,
     description: "Premium BMW iX telemetry with luxury features monitoring and advanced driver assistance data",
-    apiEndpoint: "https://api.vehiclenet.com/v1/vehicles/5/telemetry",
+    apiEndpoint: "/api/mock/vehicles/5/telemetry",
     isActive: true
   },
   {
@@ -226,7 +226,7 @@ export const mockDataProducts = [
     minDuration: 3600,
     maxDuration: 1728000, // 20 days
     description: "Comprehensive Rivian R1T diagnostic data including towing metrics and off-road performance",
-    apiEndpoint: "https://api.vehiclenet.com/v1/vehicles/6/diagnostics",
+    apiEndpoint: "/api/mock/vehicles/6/diagnostics",
     isActive: true
   }
 ];
