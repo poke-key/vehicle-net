@@ -35,7 +35,7 @@ jobs:
       - name: Install Foundry (nightly)
         run: |
           curl -L https://foundry.paradigm.xyz | bash
-          export PATH="$HOME/.foundry/bin:$PATH"
+          source ~/.bashrc
           foundryup
 
       - name: Run integration tests
