@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Car, Github, Twitter } from "lucide-react";
 
-export default function Footer() {
+export function Footer() {
   return (
     <footer className="border-t bg-muted/40">
       <div className="container flex flex-col items-center justify-between gap-4 py-10 md:h-24 md:flex-row md:py-0">
