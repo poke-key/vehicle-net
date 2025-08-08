@@ -107,7 +107,7 @@ npm run lint     # Lint code
 
 ## Project Structure
 
-```
+```txt
 vehicle-net/
 ├── rust/                 # Rust application
 │   ├── src/
