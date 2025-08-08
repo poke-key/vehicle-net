@@ -4,6 +4,12 @@
 cache/
 out/
 lib/
+!contracts/lib/
+!contracts/lib/forge-std/
+!contracts/lib/openzeppelin-contracts/
+# Ignore local modifications to submodules
+contracts/lib/*/.git/
+contracts/lib/*/.*
 
 # Rust
 target/

@@ -16,11 +16,13 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Update submodules
+        run: git submodule update --init --recursive
+
       - name: Setup Rust
-        uses: actions-rs/toolchain@v1
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: stable
-          override: true
 
       - name: Cache Rust dependencies
         uses: actions/cache@v3
@@ -28,7 +30,7 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            rust/target
+            target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
@@ -36,34 +38,22 @@ jobs:
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
-          version: nightly
+          version: v1.2.3
 
-      - name: Create output directory
-        run: mkdir -p scripts/output
+      - name: Clean existing dependencies
+        run: |
+          cd contracts
+          rm -rf lib/ || true
+          cd ..
+
+      - name: Build contracts
+        run: |
+          set -e
+          chmod +x scripts/run-contracts.sh || true
+          ./scripts/run-contracts.sh
 
       - name: Run integration tests
         run: |
-          chmod +x scripts/test-integration.sh
+          set -e
+          chmod +x scripts/test-integration.sh || true
           ./scripts/test-integration.sh
-
-      - name: Upload test artifacts
-        uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: integration-test-outputs
-          path: scripts/output/
-          retention-days: 7
-
-      - name: Display test outputs
-        if: always()
-        run: |
-          echo "=== Integration Test Outputs ==="
-          if [ -d "scripts/output" ]; then
-            for file in scripts/output/*.txt; do
-              if [ -f "$file" ]; then
-                echo "=== $(basename "$file") ==="
-                cat "$file"
-                echo ""
-              fi
-            done
-          fi

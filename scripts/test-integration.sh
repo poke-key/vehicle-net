@@ -67,6 +67,9 @@ test_rust_application() {
     cd rust
     run_command "Building Rust application" "cargo build --release"
     
+    # Create output directory if it doesn't exist
+    mkdir -p "../scripts/output"
+    
     # Test with different vehicle indices and commands
     print_section "Testing Rust with different vehicle indices"
     
@@ -123,6 +126,9 @@ test_smart_contracts() {
         return 1
     fi
     
+    # Create output directory if it doesn't exist
+    mkdir -p "../scripts/output"
+    
     # Build contracts
     run_command "Building smart contracts" "forge build"
     
@@ -153,6 +159,9 @@ test_contract_integration() {
     print_section "Testing Rust contract client compilation"
     
     cd rust
+    
+    # Create output directory if it doesn't exist
+    mkdir -p "../scripts/output"
     
     # Test if the contract client compiles
     if cargo build --release > "../scripts/output/integration_check.txt" 2>&1; then
