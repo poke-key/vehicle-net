@@ -17,10 +17,9 @@ jobs:
           submodules: recursive
 
       - name: Setup Rust
-        uses: actions-rs/toolchain@v1
+        uses: actions/setup-rust@v1
         with:
-          toolchain: stable
-          override: true
+          rust-version: stable
 
       - name: Cache Rust dependencies
         uses: actions/cache@v3
@@ -28,22 +27,23 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            rust/target
+            target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
 
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
+      - name: Install Foundry (nightly)
+        run: |
+          curl -L https://foundry.paradigm.xyz | bash
+          ~/.foundry/bin/foundryup
 
       - name: Create output directory
         run: mkdir -p scripts/output
 
       - name: Run integration tests
         run: |
-          chmod +x scripts/test-integration.sh
+          set -e
+          chmod +x scripts/test-integration.sh || true
           ./scripts/test-integration.sh
 
       - name: Upload test artifacts
