@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "@tanstack/react-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,30 +16,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { useAccount } from "wagmi";
+import { parseEther } from "viem";
 import { ConnectWallet } from "@/components/connect-wallet";
 import { useVehicleContract } from "@/hooks/useVehicleContract";
 import { Car, AlertCircle, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
-
-interface ListVehicleForm {
-  title: string;
-  vin: string;
-  location: string;
-  streamType: string;
-  price: string;
-  billingPeriod: string;
-  frequency: string;
-  description: string;
-  features: string[];
-  terms: boolean;
-}
 
 export default function ListVehicle() {
   const { isConnected } = useAccount();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionSuccess, setSubmissionSuccess] = useState(false);
   
-  const { listVehicleData, isWritePending, isConfirming, isConfirmed } = useVehicleContract();
+  const { listDataProduct, isWritePending, isConfirming, isConfirmed } = useVehicleContract();
 
   const availableFeatures = [
     "Real-time location",
@@ -55,57 +42,50 @@ export default function ListVehicle() {
     "Transmission data"
   ];
 
-  const form = useForm<ListVehicleForm>({
-    defaultValues: {
-      title: '',
-      vin: '',
-      location: '',
-      streamType: 'gps',
-      price: '',
-      billingPeriod: 'hour',
-      frequency: '',
-      description: '',
-      features: [],
-      terms: false,
-    },
-    onSubmit: async ({ value }) => {
-      if (!isConnected) {
-        toast.error("Please connect your wallet first");
-        return;
-      }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!isConnected) {
+      toast.error("Please connect your wallet first");
+      return;
+    }
 
-      setIsSubmitting(true);
+    setIsSubmitting(true);
+    
+    try {
+      // For now, we'll use a placeholder vehicle ID of 1
+      const vehicleId = 1;
       
-      try {
-        // Use VIN as unique vehicle ID
-        const vehicleId = value.vin;
-        const priceInEth = parseFloat(value.price);
+      await listDataProduct(
+        vehicleId,
+        "gps",
+        1000000000000000, // 0.001 ETH in wei
+        3600, // 1 hour minimum
+        2592000, // 30 days maximum
+        "Sample vehicle data stream",
+        "https://api.example.com/vehicle/data"
+      );
+      
+      toast.success("Transaction submitted! Your vehicle will be listed once confirmed.");
+      
+      // Wait for confirmation
+      if (isConfirmed) {
+        toast.success("Vehicle data listed successfully on the blockchain!");
+        setSubmissionSuccess(true);
         
-        await listVehicleData(vehicleId, priceInEth, value.streamType);
-        
-        toast.success("Transaction submitted! Your vehicle will be listed once confirmed.");
-        
-        // Wait for confirmation
-        if (isConfirmed) {
-          console.log("Listing vehicle:", value);
-          toast.success("Vehicle data listed successfully on the blockchain!");
-          setSubmissionSuccess(true);
-          
-          // Reset form after successful submission
-          setTimeout(() => {
-            setSubmissionSuccess(false);
-            form.reset();
-          }, 3000);
-        }
-        
-      } catch (error: any) {
-        console.error("Listing failed:", error);
-        toast.error(error?.message || "Failed to list vehicle data. Please try again.");
-      } finally {
-        setIsSubmitting(false);
+        // Reset after successful submission
+        setTimeout(() => {
+          setSubmissionSuccess(false);
+        }, 3000);
       }
-    },
-  });
+      
+    } catch (error: any) {
+      console.error("Listing failed:", error);
+      toast.error(error?.message || "Failed to list vehicle data. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   if (!isConnected) {
     return (
@@ -160,14 +140,7 @@ export default function ListVehicle() {
           </p>
         </div>
 
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            form.handleSubmit();
-          }}
-          className="space-y-6"
-        >
+        <form onSubmit={handleSubmit} className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Vehicle Information</CardTitle>
@@ -176,75 +149,33 @@ export default function ListVehicle() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <form.Field
-                name="title"
-                validators={{
-                  onChange: ({ value }) =>
-                    !value ? 'Title is required' : undefined,
-                }}
-              >
-                {(field) => (
-                  <div className="space-y-2">
-                    <Label htmlFor="title">Vehicle Title *</Label>
-                    <Input
-                      id="title"
-                      placeholder="e.g., 2023 Tesla Model S GPS Stream"
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                    />
-                    {field.state.meta.errors.length > 0 && (
-                      <p className="text-sm text-red-600">{field.state.meta.errors[0]}</p>
-                    )}
-                  </div>
-                )}
-              </form.Field>
+              <div className="space-y-2">
+                <Label htmlFor="title">Vehicle Title *</Label>
+                <Input
+                  id="title"
+                  placeholder="e.g., 2023 Tesla Model S GPS Stream"
+                  defaultValue=""
+                />
+              </div>
 
-              <form.Field
-                name="vin"
-                validators={{
-                  onChange: ({ value }) =>
-                    !value ? 'VIN is required' : value.length !== 17 ? 'VIN must be 17 characters' : undefined,
-                }}
-              >
-                {(field) => (
-                  <div className="space-y-2">
-                    <Label htmlFor="vin">VIN Number *</Label>
-                    <Input
-                      id="vin"
-                      placeholder="17-character VIN"
-                      maxLength={17}
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value.toUpperCase())}
-                    />
-                    {field.state.meta.errors.length > 0 && (
-                      <p className="text-sm text-red-600">{field.state.meta.errors[0]}</p>
-                    )}
-                  </div>
-                )}
-              </form.Field>
+              <div className="space-y-2">
+                <Label htmlFor="vin">VIN Number *</Label>
+                <Input
+                  id="vin"
+                  placeholder="17-character VIN"
+                  maxLength={17}
+                  defaultValue=""
+                />
+              </div>
 
-              <form.Field
-                name="location"
-                validators={{
-                  onChange: ({ value }) =>
-                    !value ? 'Location is required' : undefined,
-                }}
-              >
-                {(field) => (
-                  <div className="space-y-2">
-                    <Label htmlFor="location">Location *</Label>
-                    <Input
-                      id="location"
-                      placeholder="e.g., San Francisco, CA"
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                    />
-                    {field.state.meta.errors.length > 0 && (
-                      <p className="text-sm text-red-600">{field.state.meta.errors[0]}</p>
-                    )}
-                  </div>
-                )}
-              </form.Field>
+              <div className="space-y-2">
+                <Label htmlFor="location">Location *</Label>
+                <Input
+                  id="location"
+                  placeholder="e.g., San Francisco, CA"
+                  defaultValue=""
+                />
+              </div>
             </CardContent>
           </Card>
 
@@ -256,96 +187,57 @@ export default function ListVehicle() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <form.Field name="streamType">
-                {(field) => (
-                  <div className="space-y-2">
-                    <Label htmlFor="streamType">Data Stream Type *</Label>
-                    <Select value={field.state.value} onValueChange={field.handleChange}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select stream type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="gps">GPS & Location</SelectItem>
-                        <SelectItem value="diagnostics">Vehicle Diagnostics</SelectItem>
-                        <SelectItem value="telemetry">Telemetry Data</SelectItem>
-                        <SelectItem value="sensor">Sensor Array</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </form.Field>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <form.Field
-                  name="price"
-                  validators={{
-                    onChange: ({ value }) => {
-                      if (!value) return 'Price is required';
-                      if (isNaN(Number(value)) || Number(value) <= 0) return 'Price must be a positive number';
-                      return undefined;
-                    },
-                  }}
-                >
-                  {(field) => (
-                    <div className="space-y-2">
-                      <Label htmlFor="price">Price (ETH) *</Label>
-                      <Input
-                        id="price"
-                        type="number"
-                        step="0.0001"
-                        placeholder="0.001"
-                        value={field.state.value}
-                        onChange={(e) => field.handleChange(e.target.value)}
-                      />
-                      {field.state.meta.errors.length > 0 && (
-                        <p className="text-sm text-red-600">{field.state.meta.errors[0]}</p>
-                      )}
-                    </div>
-                  )}
-                </form.Field>
-
-                <form.Field name="billingPeriod">
-                  {(field) => (
-                    <div className="space-y-2">
-                      <Label htmlFor="billingPeriod">Billing Period *</Label>
-                      <Select value={field.state.value} onValueChange={field.handleChange}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="hour">Per Hour</SelectItem>
-                          <SelectItem value="day">Per Day</SelectItem>
-                          <SelectItem value="week">Per Week</SelectItem>
-                          <SelectItem value="month">Per Month</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-                </form.Field>
+              <div className="space-y-2">
+                <Label htmlFor="streamType">Data Stream Type *</Label>
+                <Select defaultValue="gps">
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select stream type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="gps">GPS & Location</SelectItem>
+                    <SelectItem value="diagnostics">Vehicle Diagnostics</SelectItem>
+                    <SelectItem value="telemetry">Telemetry Data</SelectItem>
+                    <SelectItem value="sensor">Sensor Array</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
-              <form.Field
-                name="frequency"
-                validators={{
-                  onChange: ({ value }) =>
-                    !value ? 'Update frequency is required' : undefined,
-                }}
-              >
-                {(field) => (
-                  <div className="space-y-2">
-                    <Label htmlFor="frequency">Update Frequency *</Label>
-                    <Input
-                      id="frequency"
-                      placeholder="e.g., Every 10 seconds, Every 2 minutes"
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                    />
-                    {field.state.meta.errors.length > 0 && (
-                      <p className="text-sm text-red-600">{field.state.meta.errors[0]}</p>
-                    )}
-                  </div>
-                )}
-              </form.Field>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="price">Price (ETH) *</Label>
+                  <Input
+                    id="price"
+                    type="number"
+                    step="0.0001"
+                    placeholder="0.001"
+                    defaultValue="0.001"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="billingPeriod">Billing Period *</Label>
+                  <Select defaultValue="hour">
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="hour">Per Hour</SelectItem>
+                      <SelectItem value="day">Per Day</SelectItem>
+                      <SelectItem value="week">Per Week</SelectItem>
+                      <SelectItem value="month">Per Month</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="frequency">Update Frequency *</Label>
+                <Input
+                  id="frequency"
+                  placeholder="e.g., Every 10 seconds, Every 2 minutes"
+                  defaultValue="Every 30 seconds"
+                />
+              </div>
             </CardContent>
           </Card>
 
@@ -357,99 +249,51 @@ export default function ListVehicle() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <form.Field name="features">
-                {(field) => (
-                  <div className="space-y-2">
-                    <Label>Available Features</Label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {availableFeatures.map((feature) => (
-                        <div key={feature} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={feature}
-                            checked={field.state.value.includes(feature)}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                field.handleChange([...field.state.value, feature]);
-                              } else {
-                                field.handleChange(field.state.value.filter((f: string) => f !== feature));
-                              }
-                            }}
-                          />
-                          <Label htmlFor={feature} className="text-sm">
-                            {feature}
-                          </Label>
-                        </div>
-                      ))}
+              <div className="space-y-2">
+                <Label>Available Features</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {availableFeatures.map((feature) => (
+                    <div key={feature} className="flex items-center space-x-2">
+                      <Checkbox id={feature} />
+                      <Label htmlFor={feature} className="text-sm">
+                        {feature}
+                      </Label>
                     </div>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {field.state.value.map((feature: string) => (
-                        <Badge key={feature} variant="secondary">
-                          {feature}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </form.Field>
+                  ))}
+                </div>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  <Badge variant="secondary">Real-time location</Badge>
+                  <Badge variant="secondary">Speed data</Badge>
+                </div>
+              </div>
 
-              <form.Field
-                name="description"
-                validators={{
-                  onChange: ({ value }) =>
-                    !value ? 'Description is required' : value.length < 50 ? 'Description must be at least 50 characters' : undefined,
-                }}
-              >
-                {(field) => (
-                  <div className="space-y-2">
-                    <Label htmlFor="description">Description *</Label>
-                    <Textarea
-                      id="description"
-                      placeholder="Describe your vehicle data stream in detail. What makes it valuable? What can buyers expect?"
-                      rows={4}
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      {field.state.value.length}/50 characters minimum
-                    </p>
-                    {field.state.meta.errors.length > 0 && (
-                      <p className="text-sm text-red-600">{field.state.meta.errors[0]}</p>
-                    )}
-                  </div>
-                )}
-              </form.Field>
+              <div className="space-y-2">
+                <Label htmlFor="description">Description *</Label>
+                <Textarea
+                  id="description"
+                  placeholder="Describe your vehicle data stream in detail. What makes it valuable? What can buyers expect?"
+                  rows={4}
+                  defaultValue="High-quality GPS and telemetry data from a modern electric vehicle. Real-time location tracking, speed monitoring, and battery status information. Perfect for fleet management, insurance analytics, or research purposes."
+                />
+                <p className="text-xs text-muted-foreground">
+                  150/50 characters minimum
+                </p>
+              </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="pt-6">
-              <form.Field
-                name="terms"
-                validators={{
-                  onChange: ({ value }) =>
-                    !value ? 'You must accept the terms and conditions' : undefined,
-                }}
-              >
-                {(field) => (
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="terms"
-                      checked={field.state.value}
-                      onCheckedChange={field.handleChange}
-                    />
-                    <Label htmlFor="terms" className="text-sm">
-                      I agree to the terms and conditions and confirm that I have the right to share this vehicle data *
-                    </Label>
-                    {field.state.meta.errors.length > 0 && (
-                      <p className="text-sm text-red-600 ml-6">{field.state.meta.errors[0]}</p>
-                    )}
-                  </div>
-                )}
-              </form.Field>
+              <div className="flex items-center space-x-2 mb-6">
+                <Checkbox id="terms" defaultChecked />
+                <Label htmlFor="terms" className="text-sm">
+                  I agree to the terms and conditions and confirm that I have the right to share this vehicle data *
+                </Label>
+              </div>
 
               <Button
                 type="submit"
-                className="w-full mt-6"
+                className="w-full"
                 disabled={isSubmitting || isWritePending || isConfirming}
                 size="lg"
               >

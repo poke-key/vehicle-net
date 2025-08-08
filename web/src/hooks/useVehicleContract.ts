@@ -35,8 +35,40 @@ export function useVehicleContract() {
     }
   };
 
+  // List vehicle data product on marketplace
+  const listDataProduct = async (
+    vehicleId: number,
+    dataType: string,
+    pricePerHour: number,
+    minDuration: number,
+    maxDuration: number,
+    description: string,
+    apiEndpoint: string
+  ) => {
+    try {
+      await writeContract({
+        address: DATA_MARKETPLACE_ADDRESS,
+        abi: DATA_MARKETPLACE_ABI,
+        functionName: 'listDataProduct',
+        args: [
+          BigInt(vehicleId),
+          dataType,
+          BigInt(pricePerHour),
+          BigInt(minDuration),
+          BigInt(maxDuration),
+          description,
+          apiEndpoint
+        ],
+      });
+    } catch (error) {
+      console.error('Failed to list data product:', error);
+      throw error;
+    }
+  };
+
   return {
     registerVehicle,
+    listDataProduct,
     isWritePending,
     isConfirming,
     isConfirmed,
@@ -74,14 +106,14 @@ export function useVehicleData(vehicleId: number) {
 
   // Parse the returned vehicle data
   const vehicle = data ? {
-    vin: data[0] as string,
-    wallet: data[1] as string,
-    manufacturer: data[2] as string,
-    model: data[3] as string,
-    year: Number(data[4]),
-    isActive: data[5] as boolean,
-    registrationTimestamp: Number(data[6]),
-    owner: data[7] as string,
+    vin: (data as unknown as any[])[0] as string,
+    wallet: (data as unknown as any[])[1] as string,
+    manufacturer: (data as unknown as any[])[2] as string,
+    model: (data as unknown as any[])[3] as string,
+    year: Number((data as unknown as any[])[4]),
+    isActive: (data as unknown as any[])[5] as boolean,
+    registrationTimestamp: Number((data as unknown as any[])[6]),
+    owner: (data as unknown as any[])[7] as string,
   } : null;
 
   return {
@@ -106,9 +138,9 @@ export function useVehicleMetadata(vehicleId: number) {
 
   // Parse the returned metadata
   const metadata = data ? {
-    dataTypes: data[0] as string[],
-    ipfsHash: data[1] as string,
-    lastUpdate: Number(data[2]),
+    dataTypes: (data as unknown as any[])[0] as string[],
+    ipfsHash: (data as unknown as any[])[1] as string,
+    lastUpdate: Number((data as unknown as any[])[2]),
   } : null;
 
   return {
