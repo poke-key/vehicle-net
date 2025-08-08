@@ -11,6 +11,9 @@ optimizer = true
 optimizer_runs = 200
 via_ir = true
 
+# Dependencies are managed via Git submodules
+# forge-std and openzeppelin-contracts are in lib/ directory
+
 [rpc_endpoints]
 mainnet = "${MAINNET_RPC_URL}"
 sepolia = "${SEPOLIA_RPC_URL}"
