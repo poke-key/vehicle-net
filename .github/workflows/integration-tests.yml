@@ -17,9 +17,9 @@ jobs:
           submodules: recursive
 
       - name: Setup Rust
-        uses: rust-lang/setup-rust@v1
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          rust-version: stable
+          toolchain: stable
 
       - name: Cache Rust dependencies
         uses: actions/cache@v3
@@ -37,25 +37,8 @@ jobs:
           curl -L https://foundry.paradigm.xyz | bash
           ~/.foundry/bin/foundryup
 
-      - name: Create output directory
-        run: mkdir -p scripts/output
-
       - name: Run integration tests
         run: |
           set -e
           chmod +x scripts/test-integration.sh || true
           ./scripts/test-integration.sh
-
-      - name: Display test outputs
-        if: always()
-        run: |
-          echo "=== Integration Test Outputs ==="
-          if [ -d "scripts/output" ]; then
-            for file in scripts/output/*.txt; do
-              if [ -f "$file" ]; then
-                echo "=== $(basename "$file") ==="
-                cat "$file"
-                echo ""
-              fi
-            done
-          fi
