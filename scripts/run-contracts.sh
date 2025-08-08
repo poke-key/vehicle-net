@@ -69,6 +69,10 @@ main() {
     # Set up trap to return to original directory on exit
     trap 'cd "$original_dir"' EXIT
     
+    # Initialize and update submodules from project root
+    print_section "Initializing submodules"
+    run_command "Initializing submodules" "git submodule update --init --recursive --force"
+    
     # Check if we're in the right directory structure
     if [ ! -d "contracts" ]; then
         print_error "Required 'contracts' directory not found. Please run from project root."
@@ -88,10 +92,17 @@ main() {
     
     print_info "Foundry version: $(forge --version)"
     echo ""
+
     
-    # Always install dependencies to ensure they're up to date
-    print_section "Installing dependencies"
-    run_command "Installing Foundry dependencies" "forge install"
+    # Check and update submodules
+    print_section "Checking submodules"
+    if [ -d "lib/forge-std" ] && [ -d "lib/openzeppelin-contracts" ]; then
+        print_info "Dependencies found in lib/ directory (submodules)"
+    else
+        print_error "Required dependencies not found in lib/ directory"
+        print_info "Please ensure submodules are initialized: git submodule update --init --recursive"
+        exit 1
+    fi
     
     # Debug: Check what was installed
     print_section "Checking installed dependencies"
@@ -105,6 +116,10 @@ main() {
                 echo "forge-std/src contents:"
                 ls -la lib/forge-std/src/
             fi
+        fi
+        if [ -d "lib/openzeppelin-contracts" ]; then
+            echo "openzeppelin-contracts contents:"
+            ls -la lib/openzeppelin-contracts/
         fi
     else
         echo "lib directory does not exist!"

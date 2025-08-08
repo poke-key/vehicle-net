@@ -16,7 +16,7 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Update git submodules explicitly
+      - name: Update submodules
         run: git submodule update --init --recursive
 
       - name: Setup Rust
@@ -37,6 +37,14 @@ jobs:
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: 1.2.3-stable
+
+      - name: Clean existing dependencies
+        run: |
+          cd contracts
+          rm -rf lib/ || true
+          cd ..
 
       - name: Build contracts
         run: |
