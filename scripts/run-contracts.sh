@@ -63,6 +63,12 @@ run_command() {
 main() {
     print_header "Vehicle Net - Smart Contract Build"
     
+    # Store the original directory
+    local original_dir=$(pwd)
+    
+    # Set up trap to return to original directory on exit
+    trap 'cd "$original_dir"' EXIT
+    
     # Check if we're in the right directory structure
     if [ ! -d "contracts" ]; then
         print_error "Required 'contracts' directory not found. Please run from project root."
@@ -83,14 +89,9 @@ main() {
     print_info "Foundry version: $(forge --version)"
     echo ""
     
-    # Install dependencies if needed
-    if [ ! -d "lib" ] || [ -z "$(ls -A lib 2>/dev/null)" ]; then
-        print_section "Installing dependencies"
-        run_command "Installing Foundry dependencies" "forge install"
-    else
-        print_info "Dependencies already installed"
-        echo ""
-    fi
+    # Always install dependencies to ensure they're up to date
+    print_section "Installing dependencies"
+    run_command "Installing Foundry dependencies" "forge install"
     
     # Build contracts
     run_command "Building smart contracts" "forge build"
@@ -116,8 +117,8 @@ main() {
     echo ""
     print_success "🎉 Smart contract build completed!"
     
-    # Return to root directory
-    cd ..
+    # Return to original directory
+    cd "$original_dir"
 }
 
 # Parse command line arguments
