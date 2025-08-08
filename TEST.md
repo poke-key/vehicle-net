@@ -41,6 +41,16 @@ bun --version
 
 ## 🚀 Demo Setup Instructions
 
+### 📋 Terminal Overview
+
+This demo uses a multi-terminal approach to simulate a real vehicle network:
+
+- **Terminal 1**: Smart Contract Operations (blockchain building & deployment)
+- **Terminal 2**: Web Application Development (frontend interface)
+- **Terminal 3+**: Vehicle Nodes (individual vehicles on the blockchain)
+
+Each terminal represents a different component of the vehicle network system.
+
 ### Step 1: Clone and Setup Repository
 
 ```bash
@@ -52,55 +62,22 @@ cd vehicle-net
 git submodule update --init --recursive
 ```
 
-### Step 2: Terminal 1 - Start Blockchain (Anvil)
+### Step 2: Terminal 1 - Smart Contract Operations
 
-**Purpose**: Start a local Ethereum blockchain for testing
-
-```bash
-# Navigate to contracts directory
-cd contracts
-
-# Start Anvil blockchain
-anvil
-```
-
-**Expected Output**:
-
-```txt
-🚀 Starting Anvil
-Version: 2.0.0
-Listening on 127.0.0.1:8545
-Accounts:
-[0] 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 (10000 ETH)
-[1] 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 (10000 ETH)
-[2] 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC (10000 ETH)
-...
-Private Keys:
-[0] 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
-[1] 0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d
-...
-```
-
-**Keep this terminal running** - this is your local blockchain!
-
-### Step 3: Terminal 2 - Build and Deploy Smart Contracts
-
-**Purpose**: Build and deploy the smart contracts to the local blockchain
+**Purpose**: Build and deploy smart contracts to the local blockchain
 
 ```bash
-# From project root - Build contracts first
-./scripts/run-contracts.sh
-
-# Then deploy to local blockchain (in same terminal)
-./scripts/run-contracts.sh --deploy
+# From project root - Build and deploy contracts
+./scripts/terminal-contracts.sh build-and-deploy
 ```
 
 **Expected Output**:
 
 ```txt
 ================================
-Vehicle Net - Smart Contract Build and Deploy
+Terminal 1: Smart Contract Operations
 ================================
+ℹ️ This terminal handles blockchain contract building and deployment
 
 --- Initializing submodules ---
 Running: git submodule update --init --recursive --force
@@ -110,21 +87,9 @@ Running: git submodule update --init --recursive --force
 Running: forge build
 ✅ Building smart contracts completed successfully
 
---- Build Output ---
-Contracts built successfully!
-
-Build artifacts location: contracts/out/
-
-Built contracts:
-  - AccessControl
-  - DataMarketplace
-  - VehicleRegistry
-
 🎉 Smart contract build completed!
-
-To deploy contracts to local blockchain, run:
-./scripts/run-contracts.sh --deploy
-Make sure anvil is running first: cd contracts && anvil
+ℹ️ Build artifacts location: contracts/out/
+ℹ️ Built contracts: AccessControl, DataMarketplace, VehicleRegistry
 
 --- Deploying Smart Contracts ---
 Running: forge script script/DeploySystem.s.sol --rpc-url http://localhost:8545 --broadcast --verify
@@ -135,13 +100,49 @@ Running: forge script script/DeploySystem.s.sol --rpc-url http://localhost:8545 
 ℹ️ You can now register vehicles and start vehicle nodes
 ```
 
+**Keep this terminal available** - you can use it to manage contracts and blockchain operations!
+
+### Step 3: Terminal 2 - Web Application Development
+
+**Purpose**: Build and run the web interface
+
+```bash
+# From project root - Start web development server
+./scripts/terminal-web.sh dev
+```
+
+**Expected Output**:
+
+```txt
+================================
+Terminal 2: Web Application Development
+================================
+ℹ️ This terminal handles the web interface building and development
+
+--- Installing Dependencies ---
+Using Bun to install/update dependencies...
+✅ Dependencies installed successfully
+
+--- Starting Development Server ---
+Starting web application...
+The application will be available at: http://localhost:3001
+Press Ctrl+C to stop the server
+
+Current directory: /path/to/vehicle-net/web
+Checking for package.json: -rw-r--r-- 1 user user 1234 Dec 15 10:00 package.json
+Found Bun: /usr/local/bin/bun
+Using Bun to run dev server...
+```
+
+**Keep this terminal running** - the web interface will be available at <http://localhost:3001>
+
 ### Step 4: Terminal 3 - Register First Vehicle
 
 **Purpose**: Register a vehicle on the blockchain (one-time setup per vehicle)
 
 ```bash
 # From project root
-./scripts/register-vehicle.sh 1 "TESLA001" "Tesla" "Model 3" 2023
+./scripts/terminal-vehicle.sh 1 register "TESLA001" "Tesla" "Model 3" 2023
 ```
 
 **Expected Output**:
@@ -169,20 +170,27 @@ Gas Used: 123456
 
 ```bash
 # From project root
-./scripts/run-vehicle-node.sh 1 "TESLA001"
+./scripts/terminal-vehicle.sh 1 daemon "TESLA001"
 ```
 
 **Expected Output**:
 
 ```txt
-🚗 Starting Vehicle Node #1
+================================
+Terminal 3+: Vehicle Node Operations
+================================
+ℹ️ This terminal handles vehicle registration and data transmission
+
+--- Starting Vehicle Daemon ---
+Vehicle Index: 1
 VIN: TESLA001
 Starting Mileage: 50000
 Starting Battery Health: 95%
 Report Interval: 15 seconds
 
-💡 This vehicle will continuously transmit data to the blockchain
-🔗 Make sure anvil is running and contracts are deployed
+✅ Anvil is running on localhost:8545
+ℹ️ This vehicle will continuously transmit data to the blockchain
+ℹ️ Press Ctrl+C to stop the daemon
 
 🚗 Vehicle Network - Decentralized Vehicle System
 ================================================
@@ -210,13 +218,19 @@ Report Interval: 15 seconds
 
 ```bash
 # From project root
-./scripts/register-vehicle.sh 2 "BMW002" "BMW" "i4" 2022
+./scripts/terminal-vehicle.sh 2 register "BMW002" "BMW" "i4" 2022
 ```
 
 **Expected Output**:
 
 ```txt
-🚗 Registering Vehicle Node #2
+================================
+Terminal 3+: Vehicle Node Operations
+================================
+ℹ️ This terminal handles vehicle registration and data transmission
+
+--- Registering Vehicle ---
+Vehicle Index: 2
 VIN: BMW002
 Vehicle: 2022 BMW i4
 Registration Fee: 0.01 ETH
@@ -228,46 +242,21 @@ Vehicle Address: 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC
 Transaction Hash: 0x5678...
 Gas Used: 123456
 
-✅ Vehicle registered! You can now run the daemon with:
-./scripts/run-vehicle-node.sh 2 BMW002
+✅ Vehicle registered successfully!
+ℹ️ You can now start the vehicle daemon with:
+ℹ️ ./scripts/terminal-vehicle.sh 2 daemon BMW002
 ```
 
 ### Step 7: Terminal 6 - Start Second Vehicle Node (Optional)
 
 ```bash
 # From project root
-./scripts/run-vehicle-node.sh 2 "BMW002"
+./scripts/terminal-vehicle.sh 2 daemon "BMW002"
 ```
 
 **Expected Output**: Similar to first vehicle but with different data
 
-### Step 8: Terminal 7 - Start Web Interface
-
-**Purpose**: Launch the web dashboard to view real-time vehicle data
-
-```bash
-# From project root
-./scripts/run-web.sh
-```
-
-**Expected Output**:
-
-```txt
-🌐 Vehicle Net - Web Application
-==================================
-Installing/updating dependencies...
-Using Bun to update dependencies...
-Starting web application...
-The application will be available at: http://localhost:3001
-Press Ctrl+C to stop the server
-
-Current directory: /path/to/vehicle-net/web
-Checking for package.json: -rw-r--r-- 1 user user 1234 Dec 15 10:00 package.json
-Found Bun: /usr/local/bin/bun
-Using Bun to run dev server...
-```
-
-**Keep this terminal running** - the web interface will be available at <http://localhost:3001>
+**Expected Output**: Similar to first vehicle but with different data
 
 ## 🌐 Web Interface Features
 
@@ -312,51 +301,110 @@ Recent Transactions:
 
 ## 🔧 Demo Commands Reference
 
-### Vehicle Registration
+### Terminal 1: Smart Contract Operations
+
+```bash
+# Build and deploy contracts
+./scripts/terminal-contracts.sh build-and-deploy
+
+# Check blockchain status
+./scripts/terminal-contracts.sh status
+
+# Start anvil blockchain
+./scripts/terminal-contracts.sh start-anvil
+
+# Stop anvil blockchain
+./scripts/terminal-contracts.sh stop-anvil
+```
+
+### Terminal 2: Web Application Development
+
+```bash
+# Start development server
+./scripts/terminal-web.sh dev
+
+# Build for production
+./scripts/terminal-web.sh build
+
+# Check web status
+./scripts/terminal-web.sh status
+
+# Install dependencies
+./scripts/terminal-web.sh install
+```
+
+### Terminal 3+: Vehicle Operations
 
 ```bash
 # Register a new vehicle
-./scripts/register-vehicle.sh <index> <vin> <manufacturer> <model> <year>
+./scripts/terminal-vehicle.sh <index> register <vin> [manufacturer] [model] [year] [fee]
 
-# Examples:
-./scripts/register-vehicle.sh 1 "TESLA001" "Tesla" "Model 3" 2023
-./scripts/register-vehicle.sh 2 "BMW002" "BMW" "i4" 2022
-./scripts/register-vehicle.sh 3 "AUDI003" "Audi" "e-tron" 2023
-```
-
-### Vehicle Node Operation
-
-```bash
-# Start a vehicle daemon
-./scripts/run-vehicle-node.sh <index> <vin> [mileage] [battery] [interval]
-
-# Examples:
-./scripts/run-vehicle-node.sh 1 "TESLA001"
-./scripts/run-vehicle-node.sh 2 "BMW002" 60000 92 20
-```
-
-### Manual Rust Commands
-
-```bash
-# Test vehicle signing (offline)
-cd rust
-cargo run -- --index 1 sign-report --vin "TEST123" --mileage 50000 --battery-health 95
-
-# Check vehicle balance
-cargo run -- --index 1 balance
+# Start vehicle daemon
+./scripts/terminal-vehicle.sh <index> daemon <vin> [mileage] [battery] [interval]
 
 # Get vehicle information
-cargo run -- --index 1 get-vehicle
+./scripts/terminal-vehicle.sh <index> info
+
+# Check vehicle balance
+./scripts/terminal-vehicle.sh <index> balance
+
+# Sign a report (offline)
+./scripts/terminal-vehicle.sh <index> sign <vin> [mileage] [battery]
 
 # List data on marketplace
-cargo run -- --index 1 list-data --data-type "GPS" --price 0.001 --description "Real-time GPS data"
+./scripts/terminal-vehicle.sh <index> list <data_type> [price] [description]
+
+# Examples:
+./scripts/terminal-vehicle.sh 1 register "TESLA001" "Tesla" "Model 3" 2023 0.01
+./scripts/terminal-vehicle.sh 1 daemon "TESLA001" 50000 95 15
+./scripts/terminal-vehicle.sh 1 info
+./scripts/terminal-vehicle.sh 1 balance
+./scripts/terminal-vehicle.sh 1 sign "TESLA001" 50003 95
+./scripts/terminal-vehicle.sh 1 list "GPS" 0.001 "Real-time GPS data"
 ```
 
 ## 🧪 Testing and Validation
 
 ### Integration Testing
 
-Run the comprehensive integration test suite:
+#### Step 1: Build Smart Contracts
+
+Before running integration tests, ensure all smart contracts are built:
+
+```bash
+# From project root - Build contracts first
+./scripts/run-contracts.sh
+```
+
+**Expected Output**:
+
+```txt
+================================
+Vehicle Net - Smart Contract Build and Deploy
+================================
+
+--- Initializing submodules ---
+Running: git submodule update --init --recursive --force
+✅ Initializing submodules completed successfully
+
+--- Building smart contracts ---
+Running: forge build
+✅ Building smart contracts completed successfully
+
+--- Build Output ---
+Contracts built successfully!
+
+Build artifacts location: contracts/out/
+
+Built contracts:
+  - AccessControl
+  - DataMarketplace
+  - VehicleRegistry
+
+🎉 Smart contract build completed!
+```
+
+#### Step 2: Run Integration Test Suite
 
 ```bash
 # From project root
@@ -442,15 +490,15 @@ anvil --port 8546
 
 #### 4. "Contract deployment failed" Error
 
-- Ensure anvil is running in Terminal 1
-- Check that contracts built successfully: `./scripts/run-contracts.sh --build-only`
+- Ensure anvil is running: `./scripts/terminal-contracts.sh status`
+- Check that contracts built successfully: `./scripts/terminal-contracts.sh build`
 - Verify submodules are initialized
-- Try deploying separately: `./scripts/run-contracts.sh --deploy`
+- Try deploying separately: `./scripts/terminal-contracts.sh deploy`
 
 #### 5. "Vehicle registration failed" Error
 
-- Ensure contracts are deployed
-- Check that anvil is running
+- Ensure contracts are deployed: `./scripts/terminal-contracts.sh status`
+- Check that anvil is running: `./scripts/terminal-contracts.sh status`
 - Verify vehicle index is unique
 
 ### Debug Commands
@@ -467,17 +515,15 @@ curl -X POST -H "Content-Type: application/json" \
 #### Check Contract Addresses
 
 ```bash
-# View deployed contracts (if using Foundry)
-cd contracts
-forge script script/DeploySystem.s.sol --rpc-url http://localhost:8545
+# View deployed contracts
+./scripts/terminal-contracts.sh status
 ```
 
 #### Check Vehicle Node Status
 
 ```bash
 # Test vehicle node connectivity
-cd rust
-cargo run -- --index 1 info
+./scripts/terminal-vehicle.sh 1 info
 ```
 
 ## 📊 Demo Metrics
@@ -512,9 +558,9 @@ Your demo is successful when you can:
 
 To stop the demo:
 
-1. **Stop web interface**: `Ctrl+C` in Terminal 7
+1. **Stop web interface**: `Ctrl+C` in Terminal 2
 2. **Stop vehicle nodes**: `Ctrl+C` in Terminals 4, 6
-3. **Stop anvil**: `Ctrl+C` in Terminal 1
+3. **Stop anvil**: `./scripts/terminal-contracts.sh stop-anvil`
 4. **Clean test files** (optional):
 
    ```bash
