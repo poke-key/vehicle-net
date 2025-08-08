@@ -55,10 +55,10 @@ export const VehicleListings: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
           Available Vehicle Data
         </h2>
-        <p className="text-gray-600">
+        <p className="text-gray-600 dark:text-gray-400">
           Browse and purchase access to real-time vehicle telemetry data
         </p>
       </div>
@@ -71,7 +71,7 @@ export const VehicleListings: React.FC = () => {
 
       {products.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-500">No vehicle data products available</p>
+          <p className="text-gray-500 dark:text-gray-400">No vehicle data products available</p>
         </div>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -83,10 +83,10 @@ export const VehicleListings: React.FC = () => {
               <Card key={product.id} className="hover:shadow-md transition-shadow">
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                       {vehicle.make} {vehicle.model}
                     </h3>
-                    <p className="text-gray-600 text-sm">
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">
                       {vehicle.year} • ID: {product.vehicleId}
                     </p>
                   </div>
@@ -97,23 +97,23 @@ export const VehicleListings: React.FC = () => {
 
                 <div className="space-y-2 mb-4">
                   <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Data Type:</span>
-                    <span className="text-sm font-medium">{product.dataType}</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Data Type:</span>
+                    <span className="text-sm font-medium text-gray-900 dark:text-white">{product.dataType}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Min Duration:</span>
-                    <span className="text-sm font-medium">{Math.floor(product.minDuration / 3600)}h</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Min Duration:</span>
+                    <span className="text-sm font-medium text-gray-900 dark:text-white">{Math.floor(product.minDuration / 3600)}h</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Max Duration:</span>
-                    <span className="text-sm font-medium">{Math.floor(product.maxDuration / 86400)}d</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Max Duration:</span>
+                    <span className="text-sm font-medium text-gray-900 dark:text-white">{Math.floor(product.maxDuration / 86400)}d</span>
                   </div>
                 </div>
 
-                <p className="text-sm text-gray-600 mb-4">{product.description}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{product.description}</p>
 
-                <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                  <span className="text-lg font-bold text-gray-900">
+                <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-600">
+                  <span className="text-lg font-bold text-gray-900 dark:text-white">
                     {priceInEth} ETH/hr
                   </span>
                   <Button 
