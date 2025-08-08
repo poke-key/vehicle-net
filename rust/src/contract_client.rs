@@ -162,9 +162,38 @@ impl VehicleNetworkClient {
         let signature = self.vehicle_signer.sign_condition_report(report)
             .map_err(|e| anyhow::anyhow!("Failed to sign condition report: {}", e))?;
 
-        // In a real implementation, you would submit this to an off-chain service
-        // or store it in IPFS and update the vehicle metadata
-        info!("Condition report signed successfully");
+        // Get vehicle ID
+        let vehicle_address: Address = self.vehicle_signer.get_address().parse()
+            .map_err(|e| ContractError::InvalidAddress(format!("Invalid vehicle address: {}", e)))?;
+        
+        let vehicle_id = self.get_vehicle_id_by_wallet(vehicle_address).await?;
+        
+        if vehicle_id == U256::zero() {
+            return Err(anyhow::anyhow!("Vehicle not registered").into());
+        }
+
+        // Convert signature to bytes
+        let signature_bytes = hex::decode(signature.strip_prefix("0x").unwrap_or(&signature))
+            .map_err(|e| anyhow::anyhow!("Invalid signature format: {}", e))?;
+
+        // Submit to blockchain
+        let tx = self.vehicle_registry
+            .submit_condition_report(
+                vehicle_id,
+                report.vin.clone(),
+                U256::from(report.mileage),
+                report.battery_health,
+                U256::from(report.timestamp),
+                signature_bytes.into(),
+            );
+
+        let pending_tx = tx.send().await
+            .map_err(|e| ContractError::Contract(format!("Failed to submit condition report: {}", e)))?;
+
+        let _receipt = pending_tx.await?
+            .ok_or_else(|| ContractError::Contract("Transaction receipt not found".to_string()))?;
+
+        info!("Condition report submitted to blockchain successfully");
         info!("Report: {}", serde_json::to_string_pretty(report)?);
         info!("Signature: {}", signature);
 

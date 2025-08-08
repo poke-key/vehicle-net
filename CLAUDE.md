@@ -105,7 +105,7 @@ npm run lint     # Lint code
 - useVehicleContract hook abstracts contract interactions
 - Contract bindings generated automatically in Rust build process
 
-## Project Structure
+## Project Structure (LEAF FILES CAN DEVIATE DON'T WORRY)
 
 ```txt
 vehicle-net/

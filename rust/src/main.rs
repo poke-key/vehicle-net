@@ -4,8 +4,9 @@ mod contracts;
 
 use clap::{Parser, Subcommand};
 use ethers::types::{Address, U256};
-use std::time::{SystemTime, UNIX_EPOCH};
-use tracing::{info, Level};
+use std::time::{SystemTime, UNIX_EPOCH, Duration};
+use tokio::time;
+use tracing::{info, warn, error, Level};
 use tracing_subscriber;
 
 use crate::contract_client::{ContractConfig, VehicleNetworkClient};
@@ -44,6 +45,17 @@ enum Commands {
         mileage: Option<u64>,
         #[arg(long, help = "Battery health percentage")]
         battery_health: Option<u8>,
+    },
+    /// Run vehicle as a daemon node (continuous operation)
+    Daemon {
+        #[arg(long, help = "Vehicle VIN")]
+        vin: String,
+        #[arg(long, help = "Starting mileage", default_value = "0")]
+        starting_mileage: u64,
+        #[arg(long, help = "Starting battery health", default_value = "100")]
+        starting_battery_health: u8,
+        #[arg(long, help = "Report interval in seconds", default_value = "30")]
+        interval: u64,
     },
     /// Register vehicle on blockchain
     RegisterVehicle {
@@ -127,6 +139,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     match args.command {
         Commands::SignReport { vin, mileage, battery_health } => {
             sign_report_command(args.index, vin, mileage, battery_health).await?;
+        }
+        
+        Commands::Daemon { vin, starting_mileage, starting_battery_health, interval } => {
+            daemon_command(config, args.index, vin, starting_mileage, starting_battery_health, interval).await?;
         }
         
         Commands::RegisterVehicle { vin, manufacturer, model, year, fee } => {
@@ -369,4 +385,97 @@ async fn info_command(
     println!("Vehicle Index: {}", client.get_vehicle_index());
     
     Ok(())
+}
+
+async fn daemon_command(
+    config: ContractConfig,
+    vehicle_index: u32,
+    vin: String,
+    mut current_mileage: u64,
+    mut current_battery_health: u8,
+    interval_seconds: u64,
+) -> Result<(), Box<dyn std::error::Error>> {
+    info!("🚗 Starting Vehicle Node Daemon");
+    info!("Vehicle Index: {}", vehicle_index);
+    info!("VIN: {}", vin);
+    info!("Report Interval: {} seconds", interval_seconds);
+    
+    let client = VehicleNetworkClient::new(config, vehicle_index).await?;
+    let vehicle_address = client.get_vehicle_address();
+    
+    println!("🔗 Vehicle Address: {}", vehicle_address);
+    println!("📡 Starting continuous data transmission...");
+    println!("💡 Press Ctrl+C to stop the node");
+    
+    let mut interval = time::interval(Duration::from_secs(interval_seconds));
+    let mut report_count = 0u64;
+    
+    // Check if vehicle is registered
+    let vehicle_id = match client.get_vehicle_id_by_wallet(vehicle_address.parse()?).await {
+        Ok(id) if id != U256::zero() => id,
+        _ => {
+            error!("❌ Vehicle not registered. Please register vehicle first using register-vehicle command.");
+            return Err("Vehicle not registered".into());
+        }
+    };
+    
+    info!("✅ Vehicle registered with ID: {}", vehicle_id);
+    
+    loop {
+        interval.tick().await;
+        
+        // Simulate vehicle condition changes
+        simulate_vehicle_changes(&mut current_mileage, &mut current_battery_health);
+        
+        let timestamp = SystemTime::now()
+            .duration_since(UNIX_EPOCH)?
+            .as_secs();
+        
+        let condition_report = VehicleConditionReport {
+            vin: vin.clone(),
+            mileage: current_mileage,
+            battery_health: current_battery_health,
+            timestamp,
+        };
+        
+        report_count += 1;
+        
+        println!("\n📊 Report #{} - Vehicle Node Status:", report_count);
+        println!("   🚗 VIN: {}", condition_report.vin);
+        println!("   🛣️  Mileage: {} miles", condition_report.mileage);
+        println!("   🔋 Battery: {}%", condition_report.battery_health);
+        println!("   ⏰ Timestamp: {}", condition_report.timestamp);
+        
+        // Submit to blockchain
+        match client.submit_condition_report(&condition_report).await {
+            Ok(signature) => {
+                info!("✅ Report #{} submitted to blockchain", report_count);
+                info!("🔏 Signature: {}", signature);
+            }
+            Err(e) => {
+                warn!("⚠️ Failed to submit report #{}: {}", report_count, e);
+            }
+        }
+        
+        println!("   💰 Balance: {} ETH", 
+            ethers::utils::format_ether(client.get_balance().await.unwrap_or_default())
+        );
+        println!("   🕒 Next report in {} seconds", interval_seconds);
+    }
+}
+
+fn simulate_vehicle_changes(mileage: &mut u64, battery_health: &mut u8) {
+    use rand::Rng;
+    let mut rng = rand::thread_rng();
+    
+    // Simulate mileage increase (0-5 miles per interval)
+    *mileage += rng.gen_range(0..=5);
+    
+    // Simulate battery health fluctuation (±1% occasionally)
+    if rng.gen_bool(0.3) { // 30% chance of battery change
+        let change: i8 = rng.gen_range(-1..=1);
+        if *battery_health as i8 + change >= 0 && (*battery_health as i8 + change) <= 100 {
+            *battery_health = (*battery_health as i8 + change) as u8;
+        }
+    }
 }

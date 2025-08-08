@@ -22,10 +22,21 @@ contract VehicleRegistry is Ownable, ReentrancyGuard {
         uint256 lastUpdate;
     }
 
+    struct ConditionReport {
+        string vin;
+        uint256 mileage;
+        uint8 batteryHealth;
+        uint256 timestamp;
+        bytes signature;
+        bool verified;
+    }
+
     mapping(uint256 => Vehicle) public vehicles;
     mapping(address => uint256) public walletToVehicleId;
     mapping(string => uint256) public vinToVehicleId;
     mapping(uint256 => VehicleMetadata) public vehicleMetadata;
+    mapping(uint256 => ConditionReport[]) public vehicleReports;
+    mapping(uint256 => uint256) public lastReportTimestamp;
     
     uint256 public vehicleCounter;
     uint256 public registrationFee = 0.01 ether;
@@ -40,6 +51,13 @@ contract VehicleRegistry is Ownable, ReentrancyGuard {
     event VehicleUpdated(uint256 indexed vehicleId, string ipfsHash);
     event VehicleDeactivated(uint256 indexed vehicleId);
     event RegistrationFeeUpdated(uint256 newFee);
+    event ConditionReportSubmitted(
+        uint256 indexed vehicleId,
+        uint256 mileage,
+        uint8 batteryHealth,
+        uint256 timestamp,
+        bool verified
+    );
 
     error VehicleNotFound();
     error VehicleAlreadyExists();
@@ -173,6 +191,67 @@ contract VehicleRegistry is Ownable, ReentrancyGuard {
     function withdrawFees() external onlyOwner {
         (bool success, ) = payable(owner()).call{value: address(this).balance}("");
         require(success, "Withdrawal failed");
+    }
+
+    function submitConditionReport(
+        uint256 vehicleId,
+        string memory vin,
+        uint256 mileage,
+        uint8 batteryHealth,
+        uint256 timestamp,
+        bytes memory signature
+    ) external validVehicleId(vehicleId) {
+        Vehicle storage vehicle = vehicles[vehicleId];
+        
+        // Only the vehicle's dedicated wallet can submit reports
+        require(msg.sender == vehicle.wallet, "Only vehicle wallet can submit reports");
+        require(keccak256(abi.encodePacked(vin)) == keccak256(abi.encodePacked(vehicle.vin)), "VIN mismatch");
+        
+        // Verify signature (simplified for demo - in production use proper ECDSA verification)
+        bool verified = signature.length > 0;
+        
+        ConditionReport memory report = ConditionReport({
+            vin: vin,
+            mileage: mileage,
+            batteryHealth: batteryHealth,
+            timestamp: timestamp,
+            signature: signature,
+            verified: verified
+        });
+        
+        vehicleReports[vehicleId].push(report);
+        lastReportTimestamp[vehicleId] = block.timestamp;
+        
+        emit ConditionReportSubmitted(vehicleId, mileage, batteryHealth, timestamp, verified);
+    }
+    
+    function getLatestConditionReport(uint256 vehicleId) 
+        external 
+        view 
+        validVehicleId(vehicleId) 
+        returns (ConditionReport memory) 
+    {
+        ConditionReport[] storage reports = vehicleReports[vehicleId];
+        require(reports.length > 0, "No reports available");
+        return reports[reports.length - 1];
+    }
+    
+    function getConditionReports(uint256 vehicleId) 
+        external 
+        view 
+        validVehicleId(vehicleId) 
+        returns (ConditionReport[] memory) 
+    {
+        return vehicleReports[vehicleId];
+    }
+    
+    function getReportCount(uint256 vehicleId) 
+        external 
+        view 
+        validVehicleId(vehicleId) 
+        returns (uint256) 
+    {
+        return vehicleReports[vehicleId].length;
     }
 
     function getTotalVehicles() external view returns (uint256) {
