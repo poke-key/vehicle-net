@@ -1,6 +1,17 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## Purpose
+
+This project simulates a decentralized vehicle network where each **vehicle is a node** that can:
+
+- Derive a unique Ethereum wallet from a shared HD mnemonic
+- Sign vehicle condition reports (e.g., mileage, battery health, timestamp)
+- Submit signed reports to a smart contract-based marketplace
+- Enable buyers to verify the authenticity of a vehicle via cryptographic signatures
+
+This forms the foundation of a **trustless vehicle marketplace**, where verified data is displayed on a website and payments are handled via on-chain tools like Porto.
+
+---
 
 ## Project Overview
 
