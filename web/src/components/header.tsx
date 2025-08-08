@@ -17,40 +17,46 @@ export default function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center">
-        <div className="mr-4 flex">
-          <Link className="mr-6 flex items-center space-x-2" href="/">
-            <Car className="h-6 w-6" />
-            <span className="hidden font-bold sm:inline-block">VehicleNet</span>
+    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="flex h-14 items-center justify-between px-6 max-w-[1200px] mx-auto">
+        {/* Logo on the left */}
+        <div className="flex items-center">
+          <Link className="flex items-center space-x-3" href="/">
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-foreground">
+              <Car className="h-3.5 w-3.5 text-background" />
+            </div>
+            <span className="font-medium text-foreground">VehicleNet</span>
           </Link>
-          <nav className="flex items-center space-x-6 text-sm font-medium">
+        </div>
+        
+        {/* Navigation and controls on the right */}
+        <div className="flex items-center space-x-8">
+          <nav className="flex items-center space-x-8 text-sm">
             {links.map(({ to, label }) => (
               <Link
                 key={to}
                 href={to}
                 className={cn(
                   "transition-colors hover:text-foreground/80",
-                  pathname === to ? "text-foreground" : "text-foreground/60"
+                  pathname === to 
+                    ? "rounded-md bg-muted/80 px-3 py-1.5 text-foreground font-medium" 
+                    : "text-muted-foreground"
                 )}
               >
                 {label}
               </Link>
             ))}
           </nav>
-        </div>
-        <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
-          <div className="w-full flex-1 md:w-auto md:flex-none">
-            <Button variant="outline" className="hidden md:inline-flex" size="sm" asChild>
+          
+          <div className="flex items-center space-x-6">
+            <Button variant="outline" size="sm" className="h-8 px-3" asChild>
               <Link href="/dashboard">
                 Browse Data
               </Link>
             </Button>
-          </div>
-          <nav className="flex items-center space-x-2">
             <ConnectWallet />
             <ModeToggle />
-          </nav>
+          </div>
         </div>
       </div>
     </header>
