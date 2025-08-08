@@ -1,8 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { CONTRACT_ADDRESSES, DATA_MARKETPLACE_ABI } from '@/lib/contracts';
-import { getPorto } from '@/lib/porto';
 
 export interface DataProduct {
   id: string;
@@ -25,36 +23,8 @@ export const useVehicleData = () => {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const porto = getPorto();
-      
-      const totalProductsResult = await porto.provider.request({
-        method: 'eth_call',
-        params: [{
-          to: CONTRACT_ADDRESSES.DATA_MARKETPLACE,
-          data: encodeFunctionCall('getTotalProducts', [])
-        }, 'latest']
-      });
-      
-      const totalProducts = parseInt(totalProductsResult as string, 16);
-      const productPromises = [];
-      
-      for (let i = 1; i <= totalProducts; i++) {
-        const productPromise = porto.provider.request({
-          method: 'eth_call',
-          params: [{
-            to: CONTRACT_ADDRESSES.DATA_MARKETPLACE,
-            data: encodeFunctionCall('getDataProduct', [i])
-          }, 'latest']
-        });
-        productPromises.push(productPromise);
-      }
-      
-      const productResults = await Promise.all(productPromises);
-      const decodedProducts = productResults.map((result, index) => 
-        decodeDataProduct(result as string, (index + 1).toString())
-      ).filter(product => product.isActive);
-      
-      setProducts(decodedProducts);
+      // Simplified version - no actual data marketplace for now
+      setProducts([]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch products');
     } finally {

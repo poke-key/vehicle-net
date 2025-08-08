@@ -80,7 +80,11 @@ impl VehicleSigner {
         Ok(format!("0x{}", hex::encode(signature.to_vec())))
     }
 
-    pub fn get_address(&self) -> String {
+    pub fn get_address(&self) -> H160 {
+        self.address
+    }
+
+    pub fn get_address_string(&self) -> String {
         format!("0x{:x}", self.address)
     }
 
@@ -110,7 +114,7 @@ mod tests {
         let signer1 = VehicleSigner::new(0).unwrap();
         let signer2 = VehicleSigner::new(1).unwrap();
         
-        assert_ne!(signer1.get_address(), signer2.get_address());
+        assert_ne!(signer1.get_address_string(), signer2.get_address_string());
         assert_eq!(signer1.get_vehicle_index(), 0);
         assert_eq!(signer2.get_vehicle_index(), 1);
     }
@@ -136,7 +140,7 @@ mod tests {
         let signer1 = VehicleSigner::new(5).unwrap();
         let signer2 = VehicleSigner::new(5).unwrap();
         
-        assert_eq!(signer1.get_address(), signer2.get_address());
+        assert_eq!(signer1.get_address_string(), signer2.get_address_string());
         assert_eq!(signer1.get_vehicle_index(), signer2.get_vehicle_index());
     }
 
