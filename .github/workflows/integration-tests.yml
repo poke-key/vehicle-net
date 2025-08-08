@@ -16,6 +16,9 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Update git submodules explicitly
+        run: git submodule update --init --recursive
+
       - name: Setup Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
