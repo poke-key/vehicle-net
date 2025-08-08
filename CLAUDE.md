@@ -48,6 +48,10 @@ anvil            # Start local node
 ### Web Application
 
 ```bash
+# Build and run from root (recommended)
+./run-web.sh
+
+# from web directory
 cd web
 npm install      # or bun install
 npm run dev      # Start dev server on port 3001

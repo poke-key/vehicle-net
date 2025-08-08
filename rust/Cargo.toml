@@ -6,9 +6,18 @@ authors = ["Vehicle Network Team"]
 description = "Decentralized vehicle condition reporting system"
 
 [dependencies]
-ethers = { version = "2.0", features = ["legacy"] }
+ethers = { version = "2.0", features = ["legacy", "abigen"] }
+ethers-contract = "2.0"
 clap = { version = "4.0", features = ["derive"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 hex = "0.4"
 tokio = { version = "1.0", features = ["full"] }
+anyhow = "1.0"
+thiserror = "1.0"
+tracing = "0.1"
+tracing-subscriber = "0.3"
+url = "2.4"
+
+[build-dependencies]
+ethers = { version = "2.0", features = ["abigen"] }
