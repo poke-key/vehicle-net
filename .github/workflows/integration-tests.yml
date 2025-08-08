@@ -32,11 +32,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-
 
-      - name: Install Foundry (nightly)
-        run: |
-          curl -L https://foundry.paradigm.xyz | bash
-          source /home/runner/.bashrc
-          foundryup
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
 
       - name: Run integration tests
         run: |
