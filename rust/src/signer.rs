@@ -89,11 +89,13 @@ impl VehicleSigner {
     }
 
     /// Get the master mnemonic (useful for future blockchain integration)
+    #[allow(dead_code)]
     pub fn get_master_mnemonic() -> &'static str {
         MASTER_MNEMONIC
     }
 
     /// Get the derivation path for a vehicle index
+    #[allow(dead_code)]
     pub fn get_derivation_path(vehicle_index: u32) -> String {
         format!("m/44'/60'/0'/0/{}", vehicle_index)
     }
