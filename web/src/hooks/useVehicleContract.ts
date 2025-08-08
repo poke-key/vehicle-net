@@ -58,16 +58,15 @@ export function useReadVehicleData(vehicleId: string) {
   const { data, isLoading, error } = useReadContract({
     address: mockContractAddress as `0x${string}`,
     abi: mockContractABI,
-    functionName: 'getVehicleData',
+    functionName: 'getVehicle',
     args: [vehicleId],
   });
 
   // Parse the returned data
   const vehicleData = data ? {
     owner: data[0],
-    price: formatEther(data[1] as bigint),
-    dataType: data[2],
-    isActive: data[3],
+    verified: data[1] as boolean,
+    metadata: data[2],
   } : null;
 
   return {

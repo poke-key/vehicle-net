@@ -1,12 +1,32 @@
 'use client';
 
 import React from 'react';
-import { clsx } from 'clsx';
+import { cn } from '@/lib/utils';
 
 interface CardProps {
   children: React.ReactNode;
   className?: string;
   padding?: 'sm' | 'md' | 'lg';
+}
+
+interface CardHeaderProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+interface CardTitleProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+interface CardDescriptionProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+interface CardContentProps {
+  children: React.ReactNode;
+  className?: string;
 }
 
 export const Card: React.FC<CardProps> = ({ 
@@ -21,7 +41,7 @@ export const Card: React.FC<CardProps> = ({
   };
 
   return (
-    <div className={clsx(
+    <div className={cn(
       'bg-white rounded-lg border border-gray-200 shadow-sm',
       paddingClasses[padding],
       className
@@ -30,3 +50,27 @@ export const Card: React.FC<CardProps> = ({
     </div>
   );
 };
+
+export const CardHeader: React.FC<CardHeaderProps> = ({ children, className }) => (
+  <div className={cn("flex flex-col space-y-1.5 pb-6", className)}>
+    {children}
+  </div>
+);
+
+export const CardTitle: React.FC<CardTitleProps> = ({ children, className }) => (
+  <h3 className={cn("text-lg font-semibold leading-none tracking-tight", className)}>
+    {children}
+  </h3>
+);
+
+export const CardDescription: React.FC<CardDescriptionProps> = ({ children, className }) => (
+  <p className={cn("text-sm text-muted-foreground", className)}>
+    {children}
+  </p>
+);
+
+export const CardContent: React.FC<CardContentProps> = ({ children, className }) => (
+  <div className={cn("pt-0", className)}>
+    {children}
+  </div>
+);
