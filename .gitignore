@@ -4,6 +4,9 @@
 cache/
 out/
 lib/
+!contracts/lib/
+!contracts/lib/forge-std/
+!contracts/lib/openzeppelin-contracts/
 
 # Rust
 target/
