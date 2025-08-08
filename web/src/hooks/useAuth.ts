@@ -1,14 +1,19 @@
 'use client';
 
-import { useContext } from 'react';
-import { AuthContext } from '@/components/AuthProvider';
+import { useWallet } from '@/components/WalletProvider';
 
+// Legacy useAuth hook - now uses unified WalletProvider
 export const useAuth = () => {
-  const context = useContext(AuthContext);
+  const wallet = useWallet();
   
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  
-  return context;
+  return {
+    user: wallet.address ? {
+      address: wallet.address,
+      isAuthenticated: wallet.isConnected,
+    } : null,
+    isLoading: wallet.isLoading,
+    error: wallet.error,
+    login: wallet.connectWithPorto, // Default to Porto for legacy compatibility
+    logout: wallet.disconnect,
+  };
 };

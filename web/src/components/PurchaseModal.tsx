@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
 import { purchaseDataAccessWithPorto, calculatePurchaseCost, formatEthValue } from '@/lib/porto-payments';
+import { useWallet } from '@/components/WalletProvider';
 import { DataProduct } from '@/hooks/useVehicleData';
 
 interface PurchaseModalProps {
@@ -30,6 +31,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
   const [selectedDuration, setSelectedDuration] = useState(3600);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { isPortoConnected, isConnected, connectWithPorto } = useWallet();
 
   const totalCost = calculatePurchaseCost(product.pricePerHour, selectedDuration);
   const costInEth = formatEthValue(totalCost);
@@ -38,6 +40,12 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
     try {
       setLoading(true);
       setError(null);
+      
+      // Ensure Porto is connected for payments
+      if (!isPortoConnected) {
+        setError('Porto connection required for payments. Please connect with Porto first.');
+        return;
+      }
       
       const txHash = await purchaseDataAccessWithPorto({
         productId: product.id,
@@ -122,13 +130,23 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
             >
               Cancel
             </Button>
-            <Button
-              onClick={handlePurchase}
-              loading={loading}
-              className="flex-1"
-            >
-              {loading ? 'Processing...' : `Pay ${costInEth} ETH`}
-            </Button>
+            {!isPortoConnected ? (
+              <Button
+                onClick={connectWithPorto}
+                loading={loading}
+                className="flex-1"
+              >
+                Connect Porto to Pay
+              </Button>
+            ) : (
+              <Button
+                onClick={handlePurchase}
+                loading={loading}
+                className="flex-1"
+              >
+                {loading ? 'Processing...' : `Pay ${costInEth} ETH`}
+              </Button>
+            )}
           </div>
         </div>
       </Card>
