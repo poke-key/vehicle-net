@@ -5,8 +5,28 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Car, Shield, Zap, DollarSign, Users, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { ConnectWallet } from "@/components/connect-wallet";
+import { useAuth } from '@/hooks/useAuth';
+import { VehicleListings } from '@/components/VehicleListings';
+import { PlaceholderMessage } from '@/components/PlaceholderMessage';
 
 export default function Home() {
+  const { user, isLoading } = useAuth();
+
+  // If user is authenticated, show the marketplace
+  if (user?.isAuthenticated) {
+    return <VehicleListings />;
+  }
+
+  // If loading, show loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // Show landing page for unauthenticated users
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
       {/* Hero Section */}
