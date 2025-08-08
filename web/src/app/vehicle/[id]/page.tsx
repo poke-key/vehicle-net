@@ -68,7 +68,7 @@ export default function VehicleProfile() {
     setIsPurchasing(true);
     
     try {
-      const totalPrice = vehicle.price * duration;
+      const totalPrice = parseFloat(vehicle.price) * duration;
       
       await purchaseDataAccess(vehicleId, duration, totalPrice);
       
@@ -89,7 +89,7 @@ export default function VehicleProfile() {
   };
 
   const calculatePrice = (duration: number) => {
-    return (vehicle.price * duration).toFixed(4);
+    return (parseFloat(vehicle.price) * duration).toFixed(4);
   };
 
   return (
@@ -139,7 +139,7 @@ export default function VehicleProfile() {
                   </div>
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">Last Updated</label>
-                    <p>{vehicle.lastUpdated.toLocaleDateString()}</p>
+                    <p>{vehicle.lastUpdated ? new Date(vehicle.lastUpdated).toLocaleDateString() : 'N/A'}</p>
                   </div>
                 </div>
               </CardContent>
@@ -167,7 +167,7 @@ export default function VehicleProfile() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {vehicle.features.map((feature) => (
+                  {vehicle.features?.map((feature) => (
                     <div key={feature} className="flex items-center gap-2">
                       <Activity className="h-4 w-4 text-green-500" />
                       <span className="text-sm">{feature}</span>

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { Button } from './ui/Button';
+import { Button } from './ui/button';
 
 export const AuthButton: React.FC = () => {
   const { user, isLoading, login, logout } = useAuth();
