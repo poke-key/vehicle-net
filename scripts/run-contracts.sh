@@ -93,6 +93,24 @@ main() {
     print_section "Installing dependencies"
     run_command "Installing Foundry dependencies" "forge install"
     
+    # Debug: Check what was installed
+    print_section "Checking installed dependencies"
+    if [ -d "lib" ]; then
+        echo "Contents of lib directory:"
+        ls -la lib/
+        if [ -d "lib/forge-std" ]; then
+            echo "forge-std contents:"
+            ls -la lib/forge-std/
+            if [ -d "lib/forge-std/src" ]; then
+                echo "forge-std/src contents:"
+                ls -la lib/forge-std/src/
+            fi
+        fi
+    else
+        echo "lib directory does not exist!"
+    fi
+    echo ""
+    
     # Build contracts
     run_command "Building smart contracts" "forge build"
     
