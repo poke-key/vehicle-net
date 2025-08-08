@@ -11,12 +11,17 @@ lib/
 # Ignore local modifications to submodules
 contracts/lib/*/.git/
 contracts/lib/*/.*
+contracts/broadcast/
 
 # Rust
 target/
 rust/target/
 **/*.rs.bk
 Cargo.lock
+
+# Auto-generated contract bindings
+rust/src/contracts/
+!rust/src/contracts/mod.rs
 
 # Node.js
 node_modules/
