@@ -54,3 +54,6 @@ coverage/
 
 # ESLint cache
 .eslintcache
+
+# Test outputs
+scripts/output/

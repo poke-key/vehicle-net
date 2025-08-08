@@ -34,3 +34,5 @@ fi
 
 echo ""
 echo "✅ Done!"
+
+clea
