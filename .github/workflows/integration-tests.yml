@@ -35,6 +35,12 @@ jobs:
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
 
+      - name: Build contracts
+        run: |
+          set -e
+          chmod +x scripts/run-contracts.sh || true
+          ./scripts/run-contracts.sh
+
       - name: Run integration tests
         run: |
           set -e
