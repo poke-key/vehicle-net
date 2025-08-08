@@ -1,101 +1,120 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { CONTRACT_ADDRESSES, DATA_MARKETPLACE_ABI } from '@/lib/contracts';
-import { getPorto } from '@/lib/porto';
+import { useMemo } from 'react'
+import { useTotalVehicles, useVehicleData as useVehicleDataContract, useVehicleMetadata, useIsVehicleActive } from './useVehicleContract'
 
-export interface DataProduct {
-  id: string;
-  vehicleId: string;
-  dataType: string;
-  pricePerHour: string;
-  minDuration: number;
-  maxDuration: number;
-  isActive: boolean;
-  description: string;
-  apiEndpoint: string;
-  createdAt: number;
+export interface VehicleWithMetadata {
+  id: number
+  vin: string
+  wallet: string
+  manufacturer: string
+  model: string
+  year: number
+  isActive: boolean
+  registrationTimestamp: number
+  owner: string
+  dataTypes: string[]
+  ipfsHash: string
+  lastUpdate: number
 }
 
-export const useVehicleData = () => {
-  const [products, setProducts] = useState<DataProduct[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+// Hook to fetch a single vehicle with all its data
+export function useVehicleWithMetadata(vehicleId: number) {
+  const { vehicle, isLoading: vehicleLoading, error: vehicleError, refetch: refetchVehicle } = useVehicleDataContract(vehicleId)
+  const { metadata, isLoading: metadataLoading, error: metadataError, refetch: refetchMetadata } = useVehicleMetadata(vehicleId)
 
-  const fetchProducts = async () => {
-    try {
-      setLoading(true);
-      const porto = getPorto();
-      
-      const totalProductsResult = await porto.provider.request({
-        method: 'eth_call',
-        params: [{
-          to: CONTRACT_ADDRESSES.DATA_MARKETPLACE,
-          data: encodeFunctionCall('getTotalProducts', [])
-        }, 'latest']
-      });
-      
-      const totalProducts = parseInt(totalProductsResult as string, 16);
-      const productPromises = [];
-      
-      for (let i = 1; i <= totalProducts; i++) {
-        const productPromise = porto.provider.request({
-          method: 'eth_call',
-          params: [{
-            to: CONTRACT_ADDRESSES.DATA_MARKETPLACE,
-            data: encodeFunctionCall('getDataProduct', [i])
-          }, 'latest']
-        });
-        productPromises.push(productPromise);
-      }
-      
-      const productResults = await Promise.all(productPromises);
-      const decodedProducts = productResults.map((result, index) => 
-        decodeDataProduct(result as string, (index + 1).toString())
-      ).filter(product => product.isActive);
-      
-      setProducts(decodedProducts);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch products');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const combinedData = useMemo(() => {
+    if (!vehicle || !metadata) return null
+    
+    return {
+      id: vehicleId,
+      vin: vehicle.vin,
+      wallet: vehicle.wallet,
+      manufacturer: vehicle.manufacturer,
+      model: vehicle.model,
+      year: vehicle.year,
+      isActive: vehicle.isActive,
+      registrationTimestamp: vehicle.registrationTimestamp,
+      owner: vehicle.owner,
+      dataTypes: metadata.dataTypes,
+      ipfsHash: metadata.ipfsHash,
+      lastUpdate: metadata.lastUpdate,
+    } as VehicleWithMetadata
+  }, [vehicle, metadata, vehicleId])
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
+  const isLoading = vehicleLoading || metadataLoading
+  const error = vehicleError || metadataError
 
-  return { products, loading, error, refetch: fetchProducts };
-};
-
-const encodeFunctionCall = (functionName: string, args: any[]): string => {
-  const functionSignatures = {
-    getTotalProducts: '0x66dc5c1e',
-    getDataProduct: '0x2c17e6c2'
-  };
-  
-  let data = functionSignatures[functionName as keyof typeof functionSignatures] || '0x';
-  
-  if (functionName === 'getDataProduct' && args.length > 0) {
-    const productId = parseInt(args[0]);
-    data += productId.toString(16).padStart(64, '0');
+  const refetch = () => {
+    refetchVehicle()
+    refetchMetadata()
   }
-  
-  return data;
-};
 
-const decodeDataProduct = (encodedData: string, id: string): DataProduct => {
   return {
-    id,
-    vehicleId: '1',
-    dataType: 'GPS + Diagnostics',
-    pricePerHour: '50000000000000000',
-    minDuration: 3600,
-    maxDuration: 2592000,
-    isActive: true,
-    description: 'Real-time GPS and diagnostic data',
-    apiEndpoint: '/api/vehicle-data',
-    createdAt: Date.now() / 1000
-  };
-};
+    vehicle: combinedData,
+    isLoading,
+    error,
+    refetch,
+  }
+}
+
+// Hook to fetch all vehicles with their metadata
+export function useAllVehicles() {
+  const { totalVehicles, isLoading: totalLoading, error: totalError, refetch: refetchTotal } = useTotalVehicles()
+
+  // Generate array of vehicle IDs (1 to totalVehicles)
+  const vehicleIds = useMemo(() => {
+    if (!totalVehicles || totalVehicles === 0) return []
+    return Array.from({ length: totalVehicles }, (_, i) => i + 1)
+  }, [totalVehicles])
+
+  // Fetch data for each vehicle
+  const vehicleQueries = vehicleIds.map(id => useVehicleWithMetadata(id))
+
+  // Combine all results
+  const vehicles = useMemo(() => {
+    return vehicleQueries
+      .map(query => query.vehicle)
+      .filter((vehicle): vehicle is VehicleWithMetadata => vehicle !== null)
+  }, [vehicleQueries])
+
+  const isLoading = totalLoading || vehicleQueries.some(query => query.isLoading)
+  const error = totalError || vehicleQueries.find(query => query.error)?.error
+
+  const refetch = () => {
+    refetchTotal()
+    vehicleQueries.forEach(query => query.refetch())
+  }
+
+  // Helper functions
+  const getVehicleById = (id: number) => {
+    return vehicles.find(v => v.id === id)
+  }
+
+  const getVehicleByVin = (vin: string) => {
+    return vehicles.find(v => v.vin === vin)
+  }
+
+  const getActiveVehicles = () => {
+    return vehicles.filter(v => v.isActive)
+  }
+
+  const getVehiclesByOwner = (owner: string) => {
+    return vehicles.filter(v => v.owner.toLowerCase() === owner.toLowerCase())
+  }
+
+  return {
+    vehicles,
+    totalVehicles,
+    isLoading,
+    error,
+    refetch,
+    getVehicleById,
+    getVehicleByVin,
+    getActiveVehicles,
+    getVehiclesByOwner,
+  }
+}
+
+// Legacy export for compatibility
+export const useVehicleData = useAllVehicles;
