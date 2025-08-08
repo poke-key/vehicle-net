@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card } from './ui/Card';
-import { Button } from './ui/Button';
+import { Card } from './ui/card';
+import { Button } from './ui/button';
 import { PurchaseModal } from './PurchaseModal';
 import { useVehicleData, DataProduct } from '@/hooks/useVehicleData';
 import { formatEthValue } from '@/lib/porto-payments';

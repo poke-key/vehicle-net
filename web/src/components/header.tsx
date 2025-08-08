@@ -3,7 +3,7 @@
 import React from 'react';
 import { AuthButton } from './AuthButton';
 
-export const Header: React.FC = () => {
+const Header: React.FC = () => {
   return (
     <header className="bg-white border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -19,3 +19,5 @@ export const Header: React.FC = () => {
     </header>
   );
 };
+
+export default Header;

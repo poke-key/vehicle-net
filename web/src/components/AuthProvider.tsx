@@ -1,7 +1,8 @@
 'use client';
 
-import React, { createContext, useReducer, useEffect, ReactNode } from 'react';
-import { AuthState, AuthAction, User } from '@/types/auth';
+import React, { createContext, useReducer, useEffect } from 'react';
+import type { ReactNode } from 'react';
+import type { AuthState, AuthAction, User } from '@/types/auth';
 import { connectPorto, disconnectPorto, getPortoAccount } from '@/lib/porto';
 
 const initialState: AuthState = {

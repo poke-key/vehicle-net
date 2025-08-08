@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card } from './ui/Card';
-import { Button } from './ui/Button';
+import { Card } from './ui/card';
+import { Button } from './ui/button';
 import { purchaseDataAccessWithPorto, calculatePurchaseCost, formatEthValue } from '@/lib/porto-payments';
 import { useWallet } from '@/components/WalletProvider';
-import { DataProduct } from '@/hooks/useVehicleData';
+import type { DataProduct } from '@/hooks/useVehicleData';
 
 interface PurchaseModalProps {
   product: DataProduct;
@@ -133,7 +133,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
             {!isPortoConnected ? (
               <Button
                 onClick={connectWithPorto}
-                loading={loading}
+                disabled={loading}
                 className="flex-1"
               >
                 Connect Porto to Pay
@@ -141,7 +141,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
             ) : (
               <Button
                 onClick={handlePurchase}
-                loading={loading}
+                disabled={loading}
                 className="flex-1"
               >
                 {loading ? 'Processing...' : `Pay ${costInEth} ETH`}

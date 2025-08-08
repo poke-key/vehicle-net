@@ -14,9 +14,10 @@ export default function Dashboard() {
   const [selectedType, setSelectedType] = useState<string>("all");
 
   const filteredListings = mockVehicleListings.filter(vehicle => {
-    const matchesSearch = vehicle.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         vehicle.vin.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = selectedType === "all" || vehicle.streamType === selectedType;
+    const vehicleTitle = `${vehicle.make} ${vehicle.model} ${vehicle.year}`;
+    const matchesSearch = vehicleTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         vehicle.vehicleId.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesType = selectedType === "all" || vehicle.dataType.toLowerCase().includes(selectedType.toLowerCase());
     return matchesSearch && matchesType;
   });
 
@@ -36,7 +37,7 @@ export default function Dashboard() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search by vehicle title or VIN..."
+            placeholder="Search by vehicle make/model or VIN..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -66,14 +67,14 @@ export default function Dashboard() {
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     <Car className="h-5 w-5" />
-                    {vehicle.title}
+                    {vehicle.make} {vehicle.model} {vehicle.year}
                   </CardTitle>
                   <p className="text-sm text-muted-foreground mt-1">
-                    VIN: {vehicle.vin}
+                    VIN: {vehicle.vehicleId}
                   </p>
                 </div>
-                <Badge variant={vehicle.isActive ? "default" : "secondary"}>
-                  {vehicle.isActive ? "Live" : "Offline"}
+                <Badge variant={vehicle.isVerified ? "default" : "secondary"}>
+                  {vehicle.isVerified ? "Verified" : "Unverified"}
                 </Badge>
               </div>
             </CardHeader>
@@ -81,14 +82,14 @@ export default function Dashboard() {
             <CardContent className="space-y-4">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <MapPin className="h-4 w-4" />
-                {vehicle.location}
+                {vehicle.mileage.toLocaleString()} miles
               </div>
               
               <div className="flex items-center gap-2 text-sm">
                 <Clock className="h-4 w-4 text-muted-foreground" />
-                <span className="capitalize">{vehicle.streamType} Data</span>
+                <span className="capitalize">{vehicle.dataType}</span>
                 <Badge variant="outline" className="ml-auto">
-                  {vehicle.frequency}
+                  {vehicle.batteryHealth}% Battery
                 </Badge>
               </div>
               
@@ -99,7 +100,7 @@ export default function Dashboard() {
                     {vehicle.price} ETH
                   </span>
                   <span className="text-sm text-muted-foreground">
-                    /{vehicle.billingPeriod}
+                    /hour
                   </span>
                 </div>
                 
@@ -111,7 +112,7 @@ export default function Dashboard() {
               </div>
               
               <div className="text-xs text-muted-foreground">
-                Owner: {vehicle.owner.slice(0, 6)}...{vehicle.owner.slice(-4)}
+                Updated: {new Date(vehicle.lastUpdate).toLocaleDateString()}
               </div>
             </CardContent>
           </Card>
