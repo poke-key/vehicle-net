@@ -36,3 +36,15 @@ export interface DataListing {
   isActive: boolean;
   createdAt: number;
 }
+
+export interface DataProduct {
+  id: string;
+  vehicleId: string;
+  dataType: string;
+  pricePerHour: string;
+  minDuration: number;
+  maxDuration: number;
+  description: string;
+  apiEndpoint: string;
+  isActive: boolean;
+}

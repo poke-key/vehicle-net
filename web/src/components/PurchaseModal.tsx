@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { purchaseDataAccessWithPorto, calculatePurchaseCost, formatEthValue } from '@/lib/porto-payments';
-import type { DataProduct } from '@/hooks/useVehicleData';
+import type { DataProduct } from '@/types/vehicle';
 
 interface PurchaseModalProps {
   product: DataProduct;

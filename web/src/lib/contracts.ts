@@ -1,53 +1,108 @@
-export const VEHICLE_REGISTRY_ADDRESS = process.env.NEXT_PUBLIC_VEHICLE_REGISTRY_ADDRESS || '0x'
-export const DATA_MARKETPLACE_ADDRESS = process.env.NEXT_PUBLIC_DATA_MARKETPLACE_ADDRESS || '0x'
+export const VEHICLE_REGISTRY_ADDRESS = process.env.NEXT_PUBLIC_REGISTRY_ADDRESS as `0x${string}`
+export const DATA_MARKETPLACE_ADDRESS = process.env.NEXT_PUBLIC_MARKETPLACE_ADDRESS as `0x${string}`
+export const ACCESS_CONTROL_ADDRESS = process.env.NEXT_PUBLIC_ACCESS_CONTROL_ADDRESS as `0x${string}`
 
 export const CONTRACT_ADDRESSES = {
   vehicleRegistry: VEHICLE_REGISTRY_ADDRESS,
   dataMarketplace: DATA_MARKETPLACE_ADDRESS,
-  DATA_MARKETPLACE: DATA_MARKETPLACE_ADDRESS
+  accessControl: ACCESS_CONTROL_ADDRESS,
 }
 
 export const VEHICLE_REGISTRY_ABI = [
   {
-    inputs: [{ name: 'vin', type: 'string' }],
+    inputs: [
+      { name: 'vehicleId', type: 'uint256' }
+    ],
     name: 'getVehicle',
     outputs: [
-      { name: 'owner', type: 'address' },
-      { name: 'verified', type: 'bool' },
-      { name: 'metadata', type: 'string' }
+      {
+        components: [
+          { name: 'vin', type: 'string' },
+          { name: 'wallet', type: 'address' },
+          { name: 'manufacturer', type: 'string' },
+          { name: 'model', type: 'string' },
+          { name: 'year', type: 'uint256' },
+          { name: 'isActive', type: 'bool' },
+          { name: 'registrationTimestamp', type: 'uint256' },
+          { name: 'owner', type: 'address' }
+        ],
+        name: '',
+        type: 'tuple'
+      }
     ],
+    stateMutability: 'view',
+    type: 'function'
+  },
+  {
+    inputs: [],
+    name: 'getTotalVehicles',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function'
+  },
+  {
+    inputs: [
+      { name: 'vehicleId', type: 'uint256' }
+    ],
+    name: 'getVehicleMetadata',
+    outputs: [
+      {
+        components: [
+          { name: 'dataTypes', type: 'string[]' },
+          { name: 'ipfsHash', type: 'string' },
+          { name: 'lastUpdate', type: 'uint256' }
+        ],
+        name: '',
+        type: 'tuple'
+      }
+    ],
+    stateMutability: 'view',
+    type: 'function'
+  },
+  {
+    inputs: [
+      { name: 'wallet', type: 'address' }
+    ],
+    name: 'getVehicleIdByWallet',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function'
+  },
+  {
+    inputs: [
+      { name: 'vin', type: 'string' }
+    ],
+    name: 'getVehicleIdByVin',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function'
+  },
+  {
+    inputs: [
+      { name: 'vehicleId', type: 'uint256' }
+    ],
+    name: 'isVehicleActive',
+    outputs: [{ name: '', type: 'bool' }],
     stateMutability: 'view',
     type: 'function'
   },
   {
     inputs: [
       { name: 'vin', type: 'string' },
-      { name: 'metadata', type: 'string' }
+      { name: 'vehicleWallet', type: 'address' },
+      { name: 'manufacturer', type: 'string' },
+      { name: 'model', type: 'string' },
+      { name: 'year', type: 'uint256' },
+      { name: 'dataTypes', type: 'string[]' },
+      { name: 'ipfsHash', type: 'string' }
     ],
     name: 'registerVehicle',
     outputs: [],
-    stateMutability: 'nonpayable',
+    stateMutability: 'payable',
     type: 'function'
   }
 ] as const
 
 export const DATA_MARKETPLACE_ABI = [
-  {
-    inputs: [{ name: 'vehicleId', type: 'string' }],
-    name: 'getVehicleData',
-    outputs: [{ name: 'data', type: 'string' }],
-    stateMutability: 'view',
-    type: 'function'
-  },
-  {
-    inputs: [
-      { name: 'vehicleId', type: 'string' },
-      { name: 'data', type: 'string' },
-      { name: 'price', type: 'uint256' }
-    ],
-    name: 'listVehicleData',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function'
-  }
+  // Add relevant marketplace functions here based on your DataMarketplace contract
 ] as const

@@ -7,27 +7,60 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, Filter, Car, MapPin, Clock, DollarSign } from "lucide-react";
 import Link from "next/link";
-import { mockVehicleListings } from "@/lib/mock-data";
+import { useAllVehicles } from "@/hooks/useMockVehicleData";
 
 export default function Dashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState<string>("all");
+  
+  const { vehicles, isLoading, error } = useAllVehicles();
 
-  const filteredListings = mockVehicleListings.filter(vehicle => {
-    const matchesSearch = vehicle.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  const filteredListings = vehicles.filter(vehicle => {
+    const vehicleTitle = `${vehicle.manufacturer} ${vehicle.model} ${vehicle.year}`;
+    const matchesSearch = vehicleTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          vehicle.vin.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = selectedType === "all" || vehicle.streamType === selectedType;
+    const matchesType = selectedType === "all" || vehicle.dataTypes.some(type => type.toLowerCase() === selectedType);
     return matchesSearch && matchesType;
   });
 
-  const streamTypes = ["all", "gps", "diagnostics", "telemetry", "sensor"];
+  // Generate dynamic stream types from available vehicles
+  const streamTypes = ["all", ...Array.from(new Set(vehicles.flatMap(v => v.dataTypes.map(type => type.toLowerCase()))))];
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center py-12">
+          <Car className="mx-auto h-12 w-12 text-muted-foreground mb-4 animate-pulse" />
+          <h3 className="text-lg font-semibold mb-2">Loading vehicles...</h3>
+          <p className="text-muted-foreground">
+            Loading vehicle listings...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center py-12">
+          <Car className="mx-auto h-12 w-12 text-red-500 mb-4" />
+          <h3 className="text-lg font-semibold mb-2">Failed to load vehicles</h3>
+          <p className="text-muted-foreground mb-4">
+            Could not load vehicle data. Please try again.
+          </p>
+          <Button onClick={() => window.location.reload()}>Try Again</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="mb-2 text-3xl font-bold">Vehicle Data Marketplace</h1>
         <p className="text-muted-foreground">
-          Discover and purchase access to real-time vehicle data streams
+          Discover and purchase access to real-time vehicle data streams ({vehicles.length} vehicles available)
         </p>
       </div>
 
@@ -66,7 +99,7 @@ export default function Dashboard() {
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     <Car className="h-5 w-5" />
-                    {vehicle.title}
+                    {vehicle.manufacturer} {vehicle.model} {vehicle.year}
                   </CardTitle>
                   <p className="text-sm text-muted-foreground mt-1">
                     VIN: {vehicle.vin}
@@ -80,26 +113,19 @@ export default function Dashboard() {
             
             <CardContent className="space-y-4">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <MapPin className="h-4 w-4" />
-                {vehicle.location}
+                <Clock className="h-4 w-4" />
+                Registered: {new Date(vehicle.registrationTimestamp * 1000).toLocaleDateString()}
               </div>
               
               <div className="flex items-center gap-2 text-sm">
                 <Clock className="h-4 w-4 text-muted-foreground" />
-                <span className="capitalize">{vehicle.streamType} Data</span>
-                <Badge variant="outline" className="ml-auto">
-                  {vehicle.frequency}
-                </Badge>
+                <span className="capitalize">{vehicle.dataTypes.join(", ")} Data</span>
               </div>
               
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1">
-                  <DollarSign className="h-4 w-4 text-green-600" />
-                  <span className="font-semibold text-lg">
-                    {vehicle.price} ETH
-                  </span>
                   <span className="text-sm text-muted-foreground">
-                    /{vehicle.billingPeriod}
+                    Data Available
                   </span>
                 </div>
                 
