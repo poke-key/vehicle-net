@@ -21,10 +21,11 @@ import {
 } from "lucide-react";
 import { useAccount } from "wagmi";
 import { ConnectWallet } from "@/components/connect-wallet";
-import { mockVehicleListings } from "@/lib/mock-data";
-import { useVehicleContract, useReadVehicleData } from "@/hooks/useVehicleContract";
+import { useVehicleWithMetadata } from "@/hooks/useMockVehicleData";
+import { useVehicleContract } from "@/hooks/useVehicleContract";
 import { toast } from "sonner";
 import Link from "next/link";
+import { VehicleTelemetry } from "@/components/VehicleTelemetry";
 
 export default function VehicleProfile() {
   const params = useParams();
@@ -32,19 +33,39 @@ export default function VehicleProfile() {
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [purchaseComplete, setPurchaseComplete] = useState(false);
   
-  const { purchaseDataAccess, isWritePending, isConfirming, isConfirmed } = useVehicleContract();
+  const { registerVehicle, isWritePending, isConfirming, isConfirmed } = useVehicleContract();
 
   const vehicleId = params?.id as string;
-  const vehicle = mockVehicleListings.find(v => v.id === vehicleId);
+  const { vehicle, isLoading, error } = useVehicleWithMetadata(vehicleId);
 
-  if (!vehicle) {
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-16">
+        <Card className="mx-auto max-w-md text-center">
+          <CardHeader>
+            <CardTitle>Loading Vehicle...</CardTitle>
+            <CardDescription>
+              Loading vehicle information...
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="animate-pulse">
+              <Car className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (error || !vehicle) {
     return (
       <div className="container mx-auto px-4 py-16">
         <Card className="mx-auto max-w-md text-center">
           <CardHeader>
             <CardTitle>Vehicle Not Found</CardTitle>
             <CardDescription>
-              The vehicle you're looking for doesn't exist or has been removed.
+              {error ? `Error loading vehicle: ${error.message}` : "The vehicle you're looking for doesn't exist."}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -68,17 +89,10 @@ export default function VehicleProfile() {
     setIsPurchasing(true);
     
     try {
-      const totalPrice = parseFloat(vehicle.price) * duration;
-      
-      await purchaseDataAccess(vehicleId, duration, totalPrice);
-      
-      toast.success(`Transaction submitted! ${duration} ${vehicle.billingPeriod}(s) of access will be granted once confirmed.`);
-      
-      // Wait for confirmation
-      if (isConfirmed) {
-        setPurchaseComplete(true);
-        toast.success("Purchase confirmed! You now have access to the vehicle data.");
-      }
+      // Simulate purchase process
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      toast.success(`Successfully purchased ${duration} hour(s) of data access!`);
+      setPurchaseComplete(true);
       
     } catch (error: any) {
       console.error("Purchase failed:", error);
@@ -86,10 +100,6 @@ export default function VehicleProfile() {
     } finally {
       setIsPurchasing(false);
     }
-  };
-
-  const calculatePrice = (duration: number) => {
-    return (parseFloat(vehicle.price) * duration).toFixed(4);
   };
 
   return (
@@ -102,12 +112,12 @@ export default function VehicleProfile() {
           </Link>
           <h1 className="mt-2 text-3xl font-bold flex items-center gap-3">
             <Car className="h-8 w-8" />
-            {vehicle.title}
+            {vehicle.manufacturer} {vehicle.model} {vehicle.year}
           </h1>
           <div className="mt-2 flex items-center gap-4 text-muted-foreground">
             <span className="flex items-center gap-1">
-              <MapPin className="h-4 w-4" />
-              {vehicle.location}
+              <Calendar className="h-4 w-4" />
+              Registered: {new Date(vehicle.registrationTimestamp * 1000).toLocaleDateString()}
             </span>
             <Badge variant={vehicle.isActive ? "default" : "secondary"}>
               {vehicle.isActive ? "Live Stream" : "Offline"}
@@ -130,47 +140,50 @@ export default function VehicleProfile() {
                     <p className="font-mono">{vehicle.vin}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Stream Type</label>
-                    <p className="capitalize">{vehicle.streamType}</p>
+                    <label className="text-sm font-medium text-muted-foreground">Vehicle Wallet</label>
+                    <p className="font-mono text-xs">{vehicle.wallet.slice(0, 6)}...{vehicle.wallet.slice(-4)}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Update Frequency</label>
-                    <p>{vehicle.frequency}</p>
+                    <label className="text-sm font-medium text-muted-foreground">Data Types</label>
+                    <p className="capitalize">{vehicle.dataTypes.join(", ")}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">Last Updated</label>
-                    <p>{vehicle.lastUpdated ? new Date(vehicle.lastUpdated).toLocaleDateString() : 'N/A'}</p>
+                    <p>{vehicle.lastUpdate > 0 ? new Date(vehicle.lastUpdate * 1000).toLocaleDateString() : 'Never'}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Description */}
+            {/* IPFS Data */}
             <Card>
               <CardHeader>
-                <CardTitle>Description</CardTitle>
+                <CardTitle>Data Storage</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground leading-relaxed">
-                  {vehicle.description}
-                </p>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-muted-foreground">IPFS Hash</label>
+                  <p className="font-mono text-sm break-all">
+                    {vehicle.ipfsHash || 'No data stored'}
+                  </p>
+                </div>
               </CardContent>
             </Card>
 
-            {/* Available Features */}
+            {/* Available Data Types */}
             <Card>
               <CardHeader>
-                <CardTitle>Available Features</CardTitle>
+                <CardTitle>Available Data Types</CardTitle>
                 <CardDescription>
-                  Data points included in this stream
+                  Data types registered for this vehicle
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {vehicle.features?.map((feature) => (
-                    <div key={feature} className="flex items-center gap-2">
+                  {vehicle.dataTypes.map((dataType) => (
+                    <div key={dataType} className="flex items-center gap-2">
                       <Activity className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">{feature}</span>
+                      <span className="text-sm capitalize">{dataType}</span>
                     </div>
                   ))}
                 </div>
@@ -195,27 +208,27 @@ export default function VehicleProfile() {
                   </Button>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
                   <div className="text-center">
-                    <p className="text-2xl font-bold">{vehicle.totalSales}</p>
-                    <p className="text-sm text-muted-foreground">Total Sales</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="flex items-center justify-center gap-1">
-                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      <span className="text-2xl font-bold">{vehicle.rating}</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground">Rating</p>
+                    <p className="text-2xl font-bold">
+                      {new Date(vehicle.registrationTimestamp * 1000).toLocaleDateString()}
+                    </p>
+                    <p className="text-sm text-muted-foreground">Registered</p>
                   </div>
                   <div className="text-center">
                     <p className="text-2xl font-bold text-green-600">
-                      {vehicle.isActive ? "99%" : "0%"}
+                      {vehicle.isActive ? "Active" : "Inactive"}
                     </p>
-                    <p className="text-sm text-muted-foreground">Uptime</p>
+                    <p className="text-sm text-muted-foreground">Status</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
+
+            {/* Live Telemetry */}
+            {vehicle.isActive && (
+              <VehicleTelemetry vehicleId={vehicleId} />
+            )}
           </div>
 
           {/* Purchase Panel */}
@@ -253,42 +266,60 @@ export default function VehicleProfile() {
                   </div>
                 ) : (
                   <>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm">Base Price</span>
-                        <span className="font-semibold">
-                          {vehicle.price} ETH / {vehicle.billingPeriod}
-                        </span>
+                    <div className="space-y-4">
+                      <div className="text-center p-4 bg-blue-50 rounded-lg">
+                        <p className="font-medium text-blue-800">Premium Vehicle Data</p>
+                        <p className="text-sm text-blue-600">
+                          Real-time {vehicle.streamType} data stream
+                        </p>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 gap-3">
+                        <div className="p-3 border rounded-lg">
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium">1 Hour Access</span>
+                            <span className="font-bold text-lg">{vehicle.price} ETH</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground">Perfect for testing</p>
+                        </div>
+                        
+                        <div className="p-3 border rounded-lg border-blue-200 bg-blue-50">
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium">24 Hour Access</span>
+                            <span className="font-bold text-lg">{(parseFloat(vehicle.price) * 20).toFixed(3)} ETH</span>
+                          </div>
+                          <p className="text-sm text-blue-600">Most Popular - 17% savings</p>
+                        </div>
+                        
+                        <div className="p-3 border rounded-lg">
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium">7 Day Access</span>
+                            <span className="font-bold text-lg">{(parseFloat(vehicle.price) * 120).toFixed(3)} ETH</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground">Best value - 29% savings</p>
+                        </div>
                       </div>
                     </div>
 
                     <Separator />
 
                     <div className="space-y-3">
-                      <h4 className="font-medium">Quick Purchase Options</h4>
+                      <Button
+                        className="w-full"
+                        onClick={() => handlePurchase(1)}
+                        disabled={isPurchasing}
+                      >
+                        {isPurchasing ? "Processing..." : "Purchase 1 Hour Access"}
+                      </Button>
                       
-                      {[1, 24, 168].map((duration) => {
-                        const label = duration === 1 
-                          ? `1 ${vehicle.billingPeriod}` 
-                          : duration === 24 
-                            ? vehicle.billingPeriod === 'hour' ? '1 Day' : `24 ${vehicle.billingPeriod}s`
-                            : vehicle.billingPeriod === 'hour' ? '1 Week' : `168 ${vehicle.billingPeriod}s`;
-                            
-                        return (
-                          <Button
-                            key={duration}
-                            variant="outline"
-                            className="w-full justify-between"
-                            onClick={() => handlePurchase(duration)}
-                            disabled={isPurchasing || isWritePending || isConfirming || !vehicle.isActive}
-                          >
-                            <span>{label}</span>
-                            <span className="font-semibold">
-                              {calculatePrice(duration)} ETH
-                            </span>
-                          </Button>
-                        );
-                      })}
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => handlePurchase(24)}
+                        disabled={isPurchasing}
+                      >
+                        {isPurchasing ? "Processing..." : "Purchase 24 Hour Access"}
+                      </Button>
                     </div>
 
                     <Separator />
@@ -296,7 +327,7 @@ export default function VehicleProfile() {
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Shield className="h-4 w-4" />
-                        Secure blockchain payment
+                        Secure payment processing
                       </div>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Clock className="h-4 w-4" />

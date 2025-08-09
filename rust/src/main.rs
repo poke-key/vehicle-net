@@ -123,6 +123,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .map_err(|_| "Invalid access control address format")?;
     }
 
+    // Validate that required addresses are set for blockchain operations
+    if matches!(args.command, Commands::RegisterVehicle { .. } | Commands::SubmitReport { .. } | Commands::ListData { .. } | Commands::GetVehicle { .. }) {
+        if config.vehicle_registry_address == Address::zero() {
+            return Err("Registry address required for blockchain operations".into());
+        }
+    }
+
     // Handle different commands
     match args.command {
         Commands::SignReport { vin, mileage, battery_health } => {
