@@ -1,10 +1,10 @@
-import { Porto } from 'porto'
+import { create } from 'porto/Porto'
 
 let portoInstance: any = null
 
 export function getPorto() {
   if (!portoInstance) {
-    portoInstance = Porto.create()
+    portoInstance = create()
   }
   return portoInstance
 }
