@@ -1,4 +1,4 @@
-import { Porto } from 'porto'
+import { create } from 'porto/Porto'
 
 export interface DataProduct {
   id: string
@@ -18,7 +18,7 @@ export class PortoPayments {
 
   async initialize() {
     try {
-      this.porto = Porto.create()
+      this.porto = create()
       return true
     } catch (error) {
       console.error('Failed to initialize Porto:', error)
