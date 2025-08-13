@@ -2,6 +2,7 @@ import { http, createConfig, createStorage } from 'wagmi'
 import { baseSepolia, mainnet } from 'wagmi/chains'
 import { defineChain } from 'viem'
 import { Porto } from 'porto'
+import { injected, metaMask, walletConnect, coinbaseWallet } from 'wagmi/connectors'
 
 // Initialize Porto
 Porto.create()
@@ -17,19 +18,24 @@ const anvil = defineChain({
     symbol: 'ETH',
   },
   rpcUrls: {
-    public: { http: [process.env.NEXT_PUBLIC_RPC_URL || 'http://127.0.0.1:8545'] },
-    default: { http: [process.env.NEXT_PUBLIC_RPC_URL || 'http://127.0.0.1:8545'] },
+    public: { http: [process.env.NEXT_PUBLIC_RPC_URL || 'http://localhost:8545'] },
+    default: { http: [process.env.NEXT_PUBLIC_RPC_URL || 'http://localhost:8545'] },
   },
 })
 
 export const wagmiConfig = createConfig({
   chains: [anvil, baseSepolia, mainnet],
-  connectors: [],
+  connectors: [
+    injected(),
+    metaMask(),
+    walletConnect({ projectId: 'demo' }),
+    coinbaseWallet({ appName: 'VehicleNet' }),
+  ],
   storage: createStorage({ 
     storage: typeof window !== 'undefined' ? localStorage : undefined 
   }),
   transports: {
-    [anvil.id]: http(process.env.NEXT_PUBLIC_RPC_URL || 'http://127.0.0.1:8545'),
+    [anvil.id]: http(process.env.NEXT_PUBLIC_RPC_URL || 'http://localhost:8545'),
     [baseSepolia.id]: http(),
     [mainnet.id]: http(),
   },
