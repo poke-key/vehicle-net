@@ -1,40 +1,80 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Filter, Car, MapPin, Clock, DollarSign } from "lucide-react";
+import { Car, Clock } from "lucide-react";
 import Link from "next/link";
-import { useAllVehicles } from "@/hooks/useMockVehicleData";
+import { useState, useEffect } from "react";
+import { createPublicClient, http } from 'viem';
+import { defineChain } from 'viem';
+
+// Define local Anvil chain
+const anvil = defineChain({
+  id: 31337,
+  name: 'Anvil',
+  network: 'anvil',
+  nativeCurrency: {
+    decimals: 18,
+    name: 'Ether',
+    symbol: 'ETH',
+  },
+  rpcUrls: {
+    public: { http: ['http://localhost:8545'] },
+    default: { http: ['http://localhost:8545'] },
+  },
+});
+
+const VEHICLE_REGISTRY_ABI = [
+  {
+    inputs: [],
+    name: 'getTotalVehicles',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function'
+  }
+];
 
 export default function Dashboard() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedType, setSelectedType] = useState<string>("all");
-  
-  const { vehicles, isLoading, error } = useAllVehicles();
+  const [totalVehicles, setTotalVehicles] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
-  const filteredListings = vehicles.filter(vehicle => {
-    const vehicleTitle = `${vehicle.manufacturer} ${vehicle.model} ${vehicle.year}`;
-    const matchesSearch = vehicleTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         vehicle.vin.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = selectedType === "all" || vehicle.dataTypes.some(type => type.toLowerCase() === selectedType);
-    return matchesSearch && matchesType;
-  });
+  useEffect(() => {
+    async function fetchVehicles() {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        const client = createPublicClient({
+          chain: anvil,
+          transport: http('http://localhost:8545'),
+        });
 
-  // Generate dynamic stream types from available vehicles
-  const streamTypes = ["all", ...Array.from(new Set(vehicles.flatMap(v => v.dataTypes.map(type => type.toLowerCase()))))];
+        const result = await client.readContract({
+          address: '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9',
+          abi: VEHICLE_REGISTRY_ABI,
+          functionName: 'getTotalVehicles',
+        });
+
+        setTotalVehicles(Number(result));
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error('Failed to fetch vehicles'));
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchVehicles();
+  }, []);
 
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center py-12">
           <Car className="mx-auto h-12 w-12 text-muted-foreground mb-4 animate-pulse" />
-          <h3 className="text-lg font-semibold mb-2">Loading vehicles...</h3>
-          <p className="text-muted-foreground">
-            Loading vehicle listings...
-          </p>
+          <h3 className="text-lg font-semibold mb-2">Loading vehicles from blockchain...</h3>
+          <p className="text-muted-foreground">Fetching vehicle data from smart contracts...</p>
         </div>
       </div>
     );
@@ -44,12 +84,28 @@ export default function Dashboard() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center py-12">
-          <Car className="mx-auto h-12 w-12 text-red-500 mb-4" />
-          <h3 className="text-lg font-semibold mb-2">Failed to load vehicles</h3>
+          <h3 className="text-lg font-semibold mb-2 text-destructive">Failed to load vehicles</h3>
           <p className="text-muted-foreground mb-4">
-            Could not load vehicle data. Please try again.
+            Could not connect to blockchain or load vehicle data: {error.message}
           </p>
           <Button onClick={() => window.location.reload()}>Try Again</Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (totalVehicles === 0) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center py-12">
+          <Car className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+          <h3 className="text-lg font-semibold mb-2">No vehicles registered yet</h3>
+          <p className="text-muted-foreground mb-4">
+            Be the first to register a vehicle on the decentralized marketplace.
+          </p>
+          <Link href="/list-vehicle">
+            <Button>List Your Vehicle</Button>
+          </Link>
         </div>
       </div>
     );
@@ -58,108 +114,51 @@ export default function Dashboard() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="mb-2 text-3xl font-bold">Vehicle Data Marketplace</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Vehicle Marketplace</h1>
         <p className="text-muted-foreground">
-          Discover and purchase access to real-time vehicle data streams ({vehicles.length} vehicles available)
+          Browse verified vehicles and access real-time data streams
         </p>
       </div>
 
-      {/* Search and Filter */}
-      <div className="mb-6 flex flex-col gap-4 md:flex-row">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search by vehicle title or VIN..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        
-        <div className="flex gap-2">
-          {streamTypes.map((type) => (
-            <Button
-              key={type}
-              variant={selectedType === type ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSelectedType(type)}
-            >
-              {type.charAt(0).toUpperCase() + type.slice(1)}
-            </Button>
-          ))}
-        </div>
-      </div>
-
-      {/* Vehicle Listings Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {filteredListings.map((vehicle) => (
-          <Card key={vehicle.id} className="hover:shadow-md transition-shadow">
+        {/* Show placeholder cards based on total vehicle count */}
+        {Array.from({ length: totalVehicles || 0 }).map((_, index) => (
+          <Card key={index} className="hover:shadow-lg transition-shadow">
             <CardHeader>
               <div className="flex items-start justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <Car className="h-5 w-5" />
-                    {vehicle.manufacturer} {vehicle.model} {vehicle.year}
-                  </CardTitle>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    VIN: {vehicle.vin}
-                  </p>
+                <div className="flex items-center space-x-2">
+                  <Car className="h-5 w-5 text-blue-600" />
+                  <CardTitle className="text-lg">Vehicle #{index + 1}</CardTitle>
                 </div>
-                <Badge variant={vehicle.isActive ? "default" : "secondary"}>
-                  {vehicle.isActive ? "Live" : "Offline"}
-                </Badge>
+                <Badge variant="secondary">Active</Badge>
               </div>
+              <CardDescription>
+                Vehicle registered on the blockchain
+              </CardDescription>
             </CardHeader>
-            
-            <CardContent className="space-y-4">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Clock className="h-4 w-4" />
-                Registered: {new Date(vehicle.registrationTimestamp * 1000).toLocaleDateString()}
-              </div>
-              
-              <div className="flex items-center gap-2 text-sm">
-                <Clock className="h-4 w-4 text-muted-foreground" />
-                <span className="capitalize">{vehicle.dataTypes.join(", ")} Data</span>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1">
-                  <span className="text-sm text-muted-foreground">
-                    Data Available
-                  </span>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                  <Clock className="h-4 w-4" />
+                  <span>Recently updated</span>
                 </div>
-                
-                <Link href={`/vehicle/${vehicle.id}`}>
-                  <Button size="sm">
-                    View Details
-                  </Button>
-                </Link>
-              </div>
-              
-              <div className="text-xs text-muted-foreground">
-                Owner: {vehicle.owner.slice(0, 6)}...{vehicle.owner.slice(-4)}
+                <div className="pt-4">
+                  <Link href={`/vehicle/${index + 1}`}>
+                    <Button size="sm" className="w-full">
+                      View Details
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {filteredListings.length === 0 && (
-        <div className="text-center py-12">
-          <Car className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-semibold mb-2">No vehicles found</h3>
-          <p className="text-muted-foreground">
-            Try adjusting your search criteria or browse all available listings.
-          </p>
-        </div>
-      )}
-
       <div className="mt-8 text-center">
-        <Link href="/list-vehicle">
-          <Button size="lg">
-            List Your Vehicle Data
-          </Button>
-        </Link>
+        <p className="text-sm text-muted-foreground">
+          Showing {totalVehicles} vehicle{totalVehicles !== 1 ? 's' : ''} from the blockchain
+        </p>
       </div>
     </div>
   );

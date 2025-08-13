@@ -19,7 +19,8 @@ The system consists of three core smart contracts:
 - **Registration Fees**: Configurable registration fees paid to the platform
 
 ### Data Marketplace
-- **Product Listings**: Vehicles can list data products with pricing and duration limits
+- **Product Listings**: Vehicles can list data products w
+ith pricing and duration limits
 - **Purchase Logic**: Buyers pay in ETH for time-limited access to data streams
 - **Automated Payouts**: Payments automatically routed to vehicle wallets minus platform fees
 - **Streaming Payments**: Support for continuous payment streams based on usage
