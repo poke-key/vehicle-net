@@ -382,4 +382,4 @@ contract DataMarketplace is ReentrancyGuard, Pausable, Ownable {
     function getTotalStreamingPayments() external view returns (uint256) {
         return streamingCounter;
     }
-}
+} 
