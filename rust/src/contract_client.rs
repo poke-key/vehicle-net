@@ -41,19 +41,6 @@ impl ContractConfig {
         }
     }
 
-    pub fn with_addresses(
-        registry: Address,
-        marketplace: Address,
-        access_control: Address,
-    ) -> Self {
-        Self {
-            rpc_url: "http://127.0.0.1:8545".to_string(),
-            vehicle_registry_address: registry,
-            data_marketplace_address: marketplace,
-            access_control_address: access_control,
-            chain_id: 31337,
-        }
-    }
 }
 
 pub struct VehicleNetworkClient {
