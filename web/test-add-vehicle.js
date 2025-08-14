@@ -63,7 +63,7 @@ async function addTestVehicle() {
     
     // Register a test vehicle
     const tx = await walletClient.writeContract({
-      address: '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9',
+      address: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
       abi: VEHICLE_REGISTRY_ABI,
       functionName: 'registerVehicle',
       args: [
@@ -86,7 +86,7 @@ async function addTestVehicle() {
 
     // Check total vehicles now
     const totalVehicles = await publicClient.readContract({
-      address: '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9',
+      address: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
       abi: VEHICLE_REGISTRY_ABI,
       functionName: 'getTotalVehicles',
     });
