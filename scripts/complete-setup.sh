@@ -89,7 +89,8 @@ print_success "Anvil is running"
 # Step 3: Deploy smart contracts
 print_step "Deploying smart contracts..."
 cd contracts
-PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 forge script script/DeploySystem.s.sol --rpc-url http://localhost:8545 --broadcast
+export PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+forge script script/DeploySystem.s.sol --rpc-url http://localhost:8545 --broadcast --private-key $PRIVATE_KEY
 
 # Extract contract addresses from the latest deployment
 VEHICLE_REGISTRY=$(jq -r '.transactions[] | select(.contractName == "VehicleRegistry") | .contractAddress' broadcast/DeploySystem.s.sol/31337/run-latest.json)
